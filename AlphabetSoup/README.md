@@ -1,22 +1,48 @@
-## Understanding the Alphabet Soup of Development Methodologies: A Guide to TDD, BDD, DDD, and More
+## Вы точно знаете все DD? Погружаемся в мир PDD, HDD, DDD и других!
 
-Introduction
-* Briefly explain the rise of *DD methodologies in software development.
+### Введение
+Мотивацией к написанию этой статьи стало великое множество **DD**-подобных аббревиатур.  
+Я решил объединить их обзор в одном месте — это может быть полезно как для **собеседований**, так и для **общего развития**.  
+Статья не претендует на глубину погружения в каждую методологию, а скорее предлагает поверхностный обзор.
+Порой данные методологии являются шуточными (HDD, PDD), порой - весьма основополагающими (DDD, BDD, TDD)
+Более того, некоторые из них - антипаттерны (Panic DD, Fear DD)
+В связи с этим я привожу их в порядке убывания полезности и серьезности (на мой взгляд)
+---  
 
-* Why they matter: Efficiency, collaboration, quality, and alignment with business goals.
+### 1. **DDD (Domain-Driven Development)**
+Фокусируется на **бизнес-логике** и глубоком понимании **предметной области**.  
+📌 Использует **Value Objects, Aggregates, Entities** и другие DDD-концепции.
+![img.png](img.png)
 
-* Goal of the article: Provide a high-level comparison to help teams choose the right approach.
+### 2. **TDD (Test-Driven Development)**
+Сначала пишем **тест**, который проваливается, затем пишем код, пока тест не пройдет.  
+📌 Позволяет писать **надежный код** с минимальным количеством багов.
 
-___
+### 3. **FDD (Fear-Driven Development)**
+Это когда система настолько хрупкая, что запрещается почти любой рефакторинг, во избежание возникновения трудно уловимых багов
 
-1. BDD (Behavior DD)
-2. DDD (Domain DD)
-3. DDD (Data DD)
-4. FDD (Fear DD)
-5. FDD (Feature DD)
-6. HDD (Hammock DD)
-7. MDD (Model DD)
-8. NDD (Need DD)
-9. PDD (Puzzle DD)
-10. PDD (Panic DD)
-11. TDD (Test DD)
+### 4. **ADD (API-Driven Development)**
+
+### 5. **BDD (Behavior-Driven Development)**
+Основная идея — писать тесты на основе **поведения системы**, используя **читаемые сценарии** (Given-When-Then).  
+
+### 6. **CDD (Comment-Driven Development)**
+
+### 7. **DDD (Data-Driven Development)**
+
+### 8. **FDD (Features-Driven Development)**
+
+### 9. **HDD (Hammock-Driven Development)**
+
+### 10. **MDD (Model-Driven Development)**
+Фокус на **визуальном моделировании системы перед кодингом**, часто через UML.
+
+### 11. **NDD (Need-Driven Development)**
+
+### 12. **PDD (Puzzle-Driven Development)**
+
+### 13. **PDD (Panic-Driven Development)**
+
+### 14. **TDD (Type-Driven Development)**
+
+---

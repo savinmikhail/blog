@@ -10,21 +10,26 @@
 ---  
 
 ### 1. **DDD (Domain-Driven Development)**
-Фокусируется на **бизнес-логике** и глубоком понимании **предметной области**.  
-📌 Использует **Value Objects, Aggregates, Entities** и другие DDD-концепции.
+Ubiquitous language
+Bounded Context
+Выделенный домен (аггрегат)
+
 ![img.png](img.png)
+https://habr.com/ru/companies/dododev/articles/489352/
 
 ### 2. **TDD (Test-Driven Development)**
-Сначала пишем **тест**, который проваливается, затем пишем код, пока тест не пройдет.  
-📌 Позволяет писать **надежный код** с минимальным количеством багов.
+Red -> Green -> Refactor
+![img_1.png](img_1.png)
 
 ### 3. **FDD (Fear-Driven Development)**
-Это когда система настолько хрупкая, что запрещается почти любой рефакторинг, во избежание возникновения трудно уловимых багов
+Mostly fear of changing code: https://www.hanselman.com/blog/fear-driven-development-fdd
+Legacy/spaggetti code
 
 ### 4. **ADD (API-Driven Development)**
+https://techaffinity.com/blog/api-driven-development/
 
 ### 5. **BDD (Behavior-Driven Development)**
-Основная идея — писать тесты на основе **поведения системы**, используя **читаемые сценарии** (Given-When-Then).  
+
 
 ### 6. **CDD (Comment-Driven Development)**
 
@@ -35,7 +40,6 @@
 ### 9. **HDD (Hammock-Driven Development)**
 
 ### 10. **MDD (Model-Driven Development)**
-Фокус на **визуальном моделировании системы перед кодингом**, часто через UML.
 
 ### 11. **NDD (Need-Driven Development)**
 

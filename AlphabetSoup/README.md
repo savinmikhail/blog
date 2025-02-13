@@ -24,6 +24,7 @@ Red -> Green -> Refactor
 ### 3. **FDD (Fear-Driven Development)**
 Mostly fear of changing code: https://www.hanselman.com/blog/fear-driven-development-fdd
 Legacy/spaggetti code without tests and static analysis, so nothing holds your back
+![img_3.png](img_3.png)
 
 ### 4. **ADD (API-Driven Development)**
 Сначала проектируется АПИ (например в виде open api), а потом уже пишется код

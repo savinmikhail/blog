@@ -74,32 +74,31 @@ di:
 
 schema-validate:
   stage: quality
-  image: composer:latest
+  image: php:8.2
   script:
     - bin/console doctrine:schema:validate --skip-sync
 
 rector:
   stage: quality
-  image: composer:latest
+  image: php:8.2
   script:
     - vendor/rector/rector/bin/rector --dry-run
 
 deptrac:
   stage: quality
-  image: composer:latest
+  image: php:8.2
   script:
     - vendor/bin/deptrac --config-file=deptrac.modules.yaml --cache-file=var/.deptrac.modules.cache
     - vendor/bin/deptrac --config-file=deptrac.directories.yaml --cache-file=var/.deptrac.directories.cache
 
 psalm:
    stage: quality
-   image: composer:latest
+   image: php:8.2
    script:
      - vendor/vimeo/psalm/psalm
 
 deploy:
   stage: deploy
-  environment: production
   only:
     - master   # или main/develop/release.x.x.x
   script:

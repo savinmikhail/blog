@@ -71,6 +71,9 @@ Feature: Listing command
 // вернуть массив
 ```
 
+### 8. **CVDD (CV-Driven Development)**
+https://rmakara.github.io/Essay-on-benefits-of-CV-driven-development
+
 ### 7. **DDD (Data-Driven Development)**
 
 Подход, используемый дизайнерами - собираются метрики действий пользователя на страницах, анализируются, и на основании аналитики улучшается дизайн

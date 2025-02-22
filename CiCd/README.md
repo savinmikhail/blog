@@ -1,6 +1,10 @@
+## Pipeline (CI/CD) tutorial
+
+![img.png](img.png)
+
 Why use pipeline? https://youtu.be/jFSSV1pdZTw?si=RY7jP0HmlCeI_mM9x
 
-Мы будем рассматривать gitnlab ci/cd, потому что по моему опыту самый распространенный инструмент в коммерческой разработке
+Мы будем рассматривать gitlab ci/cd, потому что по моему опыту самый распространенный инструмент в коммерческой разработке
 
 USEFUL LINKS:
 - GitLab template examples: https://docs.gitlab.com/ci/examples/#cicd-templates
@@ -13,15 +17,17 @@ USEFUL LINKS:
 - PHP template https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/PHP.gitlab-ci.yml
 - Restrict test coverage decrease: https://rpadovani.com/gitlab-code-coverage#the-gitlab-pipeline-job
 
-Trivy itself https://trivy.dev/latest/docs/target/container_image/
-
-Джобы quality stage запускаются параллельно, поэтому нет смысла располагать их из расчета fail fast
+Джобы в test stage запускаются параллельно, поэтому нет смысла располагать их из расчета fail fast
 
 Я расположу их в порядке легкости и важности внедрения в проект
 
 Часть джоб актуальна только для symfony (di, schema validate)
 
-DAST jobs are for ultimate tier only
+Шаблоны для DAST jobs приспособлены для ultimate tier, поэтому переписаны
+
+<details>
+
+<summary><strong>.gitlab-ci.yml</strong></summary>
 
 ```yaml
 stages:
@@ -47,7 +53,6 @@ build:
   artifacts:
     paths:
       - vendor/
-
 
 build_image:
   services:
@@ -75,10 +80,101 @@ cs:
 phpunit:
   stage: test
   image: php:8.2
+  services:
+    - name: postgres:14
+      alias: postgres
   variables:
     APP_ENV: test
+    DATABASE_URL: "pgsql://postgres:postgres@postgres:5432/test_db"
+    POSTGRES_DB: test_db
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
   script:
-    - ./vendor/bin/phpunit # https://github.com/sebastianbergmann/phpunit
+    - apt-get update && apt-get install -y postgresql-client
+    - until pg_isready -h postgres -p 5432 -U postgres; do sleep 1; done
+    - bin/console doctrine:database:create --if-not-exists --env=test
+    - bin/console doctrine:migrations:migrate --no-interaction --env=test
+    - XDEBUG_MODE=coverage php ./vendor/bin/phpunit --coverage-text --coverage-cobertura=coverage.cobertura.xml --coverage-clover=coverage.xml
+  coverage: '/^\s*Lines:\s*\d+.\d+\%/'
+  artifacts:
+    paths:
+      - coverage.cobertura.xml
+      - coverage.xml
+
+check_coverage:
+  image: alpine:latest
+  stage: test
+  needs: [phpunit]
+  variables:
+    JOB_NAME: phpunit
+    TARGET_BRANCH: master
+  before_script:
+    - apk add --update --no-cache curl jq
+  rules:
+    - if: '$CI_COMMIT_BRANCH != $TARGET_BRANCH'  # Only run on MRs, not on the main branch
+  script:
+    # Get the latest successful pipeline ID from the target branch
+    - TARGET_PIPELINE_ID=$(curl -s "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines?ref=${TARGET_BRANCH}&status=success&private_token=${PRIVATE_TOKEN}" | jq ".[0].id")
+
+    # Fetch the coverage percentage from the target branch's last successful pipeline
+    - TARGET_COVERAGE=$(curl -s "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines/${TARGET_PIPELINE_ID}/jobs?private_token=${PRIVATE_TOKEN}" | jq --arg JOB_NAME "$JOB_NAME" '.[] | select(.name==$JOB_NAME) | .coverage' | tr -d '"')
+
+    # Fetch the current coverage from this pipeline
+    - CURRENT_COVERAGE=$(curl -s "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines/${CI_PIPELINE_ID}/jobs?private_token=${PRIVATE_TOKEN}" | jq --arg JOB_NAME "$JOB_NAME" '.[] | select(.name==$JOB_NAME) | .coverage' | tr -d '"')
+
+    # Validate if coverage values are available
+    - |
+      if [ -z "$TARGET_COVERAGE" ]; then 
+        echo "No previous coverage data found. Skipping check."; 
+        exit 0;
+      fi
+
+    - |
+      if [ -z "$CURRENT_COVERAGE" ]; then 
+        echo "Failed to retrieve current coverage data."; 
+        exit 1;
+      fi
+
+    # Convert to numeric and compare
+    - |
+      TARGET_COVERAGE=$(echo "$TARGET_COVERAGE" | awk '{print int($1)}')
+      CURRENT_COVERAGE=$(echo "$CURRENT_COVERAGE" | awk '{print int($1)}')
+
+      if [ "$CURRENT_COVERAGE" -lt "$TARGET_COVERAGE" ]; then 
+        echo "Coverage decreased from ${TARGET_COVERAGE}% to ${CURRENT_COVERAGE}%! Merge request blocked.";
+        exit 1;
+      else 
+        echo "Coverage check passed: ${CURRENT_COVERAGE}% (previous: ${TARGET_COVERAGE}%)";
+      fi
+
+phpmd:
+  stage: test
+  image: php:8.2
+  script:
+    - vendor/bin/phpmd src json phpmd.xml --reportfile phpmd_result.json
+  artifacts:
+    paths:
+      - phpmd_result.json
+
+migrations_rollback_test:
+  stage: test
+  image: php:8.2
+  services:
+    - name: postgres:14
+      alias: postgres
+  variables:
+    APP_ENV: test
+    DATABASE_URL: "pgsql://postgres:postgres@postgres:5432/test_db"
+    POSTGRES_DB: test_db
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+  script:
+    - apt-get update && apt-get install -y postgresql-client
+    - until pg_isready -h postgres -p 5432 -U postgres; do sleep 1; done
+    - bin/console doctrine:database:create --if-not-exists --env=test
+    - bin/console doctrine:migrations:migrate --no-interaction --env=test
+    - bin/console doctrine:migrations:migrate first --no-interaction --env=test
+    - bin/console doctrine:migrations:migrate --no-interaction --env=test
 
 composer:
   stage: test
@@ -212,9 +308,7 @@ dast_nuclei:
       - nuclei-report.jsonl
 
 ```
-
-# тестить имадж (собирать) а еще лучше пушить его в registry и использовать в ci/cd
-# проверять не просело ли покрытие тестами
+</details>
 
 примеры конфигов
 
@@ -508,7 +602,7 @@ return $config;
 }
 ```
 
-### `trivy`
+### [Trivy](https://trivy.dev/latest/docs/target/container_image/)
 
 ```json
 {

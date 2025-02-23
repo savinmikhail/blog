@@ -43,6 +43,8 @@ CI/CD расшифровывается как Continuous Integration / Continuou
 Чем больше проверок в пайплайне, тем медленнее вносятся изменения в код, поэтому не рекомендую затаскивать все возможные инструменты сразу. 
 Многие инструменты имеют функционал baseline, другие инструменты имеют настраиваемую сложность или фильтры найденных уязвимостейч, то облегчает их интеграцию.
 
+## Структура пайплайна
+
 Часть расписанных здесь джоб актуальна только для symfony (например di, schema validate)
 
 Мы будем рассматривать GitLab CI/CD, потому что по моему опыту самый распространенный инструмент в коммерческой разработке
@@ -65,8 +67,6 @@ GitLab Runner [автоматически](https://docs.gitlab.com/ci/runners/co
 
 <details>
 
-
-# Add infection/ yaml linting/ 
 <summary><strong>.gitlab-ci.yml</strong></summary>
 
 ```yaml
@@ -358,9 +358,13 @@ dast_nuclei:
 ```
 </details>
 
-примеры конфигов
+## Примеры конфигов
 
-### `rector.php`
+Приведу здесь используемые мной конфиги для ряда job, чтобы было проще вам взять и использовать пайплайн. Конечно стоит изучить самостоятельно особенности каждого инструмента
+
+<details>
+
+<summary><strong>rector.php</strong></summary>
 
 ```php
 <?php
@@ -388,8 +392,11 @@ return RectorConfig::configure()
     ]);
 
 ```
+</details>
 
-### `phpunit.xml.dist`
+<details>
+
+<summary><strong>phpunit.xml.dist</strong></summary>
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -421,8 +428,11 @@ return RectorConfig::configure()
     </source>
 </phpunit>
 ```
+</details>
 
-### `psalm.xml.dist`
+<details>
+
+<summary><strong>psalm.xml.dist</strong></summary>
 
 ```xml
 <?xml version="1.0"?>
@@ -497,8 +507,11 @@ return RectorConfig::configure()
     </stubs>
 </psalm>
 ```
+</details>
 
-### `deptrac.directories.yaml`
+<details>
+
+<summary><strong>deptrac.directories.yaml</strong></summary>
 
 ```yaml
 
@@ -534,8 +547,13 @@ deptrac:
         public: [src]
         tests: [src]
 ```
+</details>
 
-### `composer-unused.php`
+
+<details>
+
+<summary><strong>composer-unused.php</strong></summary>
+
 ```php
 <?php
 
@@ -556,7 +574,12 @@ return static fn(Configuration $config): Configuration => $config
     ->addNamedFilter(NamedFilter::fromString('symfony/security-bundle'));
 ```
 
-### `php-cs-fixer.php`
+</details>
+
+<details>
+
+<summary><strong>php-cs-fixer.php</strong></summary>
+
 ```php
 <?php
 
@@ -583,10 +606,17 @@ $config = (new Config())
 return $config;
 
 ```
+</details>
 
-## примеры найденных ошибок
+## Примеры найденных ошибок
 
-### `kics`
+Приведу здесь примеры violations, которые репортуют инструменты, чтобы у вас сложилось представление, какой инструмент какую пользу может принести
+
+</details>
+
+<details>
+
+<summary><strong>kics</strong></summary>
 
 ```json
 {
@@ -615,7 +645,11 @@ return $config;
 }
 ```
 
-### `nuclei`
+</details>
+
+<details>
+
+<summary><strong>nuclei</strong></summary>
 
 ```json
 {
@@ -650,7 +684,11 @@ return $config;
 }
 ```
 
-### [Trivy](https://trivy.dev/latest/docs/target/container_image/)
+</details>
+
+<details>
+
+<summary><strong>Trivy</strong></summary>
 
 ```json
 {
@@ -737,8 +775,11 @@ return $config;
     "solution": "No solution provided"
 }
 ```
+</details>
 
-### `gitleaks`
+<details>
+
+<summary><strong>Gitleaks</strong></summary>
 
 ```json
 {
@@ -773,6 +814,7 @@ return $config;
     ]
 }
 ```
+</details>
 
 ## USEFUL LINKS:
 - GitLab template examples: https://docs.gitlab.com/ci/examples/#cicd-templates

@@ -2,34 +2,34 @@
 
 ![img.png](img.png)
 
-Why use pipeline? https://youtu.be/jFSSV1pdZTw?si=RY7jP0HmlCeI_mM9x
+[Why use pipeline?](https://youtu.be/jFSSV1pdZTw?si=RY7jP0HmlCeI_mM9x) 
 
-Мы будем рассматривать gitlab ci/cd, потому что по моему опыту самый распространенный инструмент в коммерческой разработке
+Цена багов и уязвимостей найденных на проде несомненно выше таковых найденых еще до того, как код был смержен в master, 
+поэтому имеет и коммерческий смысл делать shift left в отношении проверки кода на качество и безопасность
 
-USEFUL LINKS:
-- GitLab template examples: https://docs.gitlab.com/ci/examples/#cicd-templates
-- GitLab template usage documentation: https://docs.gitlab.com/ci/yaml/includes/#include-a-single-configuration-file
-- GitLab application security documentation: https://docs.gitlab.com/user/application_security/
-- GitLab DevSecOps tutorial: https://gitlab-da.gitlab.io/tutorials/security-and-governance/devsecops/simply-vulnerable-notes/
-- GitLab security scanner integration documentation: https://docs.gitlab.com/user/application_security/#security-scanning-without-auto-devops
-- GitLab security and governance solutions: https://about.gitlab.com/solutions/security-compliance/
-- GitLab DevSecOps demo application: https://gitlab.com/gitlab-da/tutorials/security-and-governance/devsecops/simply-vulnerable-notes
-- PHP template https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/PHP.gitlab-ci.yml
-- Restrict test coverage decrease: https://rpadovani.com/gitlab-code-coverage#the-gitlab-pipeline-job
+Часто проверки кода располагают в pre-commit hooks, это менее надежно - разработчик скорее всего рано или поздно отключит их, 
+плюс это замедляют работу в feature ветке, когда ты хочешь сначала накидать решение которое работает, 
+а потом уже отрефакторить его, чтоб оно было более поддерживаемое
+
+Чем больше проверок в пайплайне, тем медленнее вносятся изменения в код, поэтому не рекомендую затаскивать все возможные инструменты сразу
+
+Часть джоб актуальна только для symfony (di, schema validate)
+
+Мы будем рассматривать GitLab CI/CD, потому что по моему опыту самый распространенный инструмент в коммерческой разработке
 
 Джобы в test stage запускаются параллельно, поэтому нет смысла располагать их из расчета fail fast
 
 Я расположу их в порядке легкости и важности внедрения в проект
 
-Часть джоб актуальна только для symfony (di, schema validate)
+Есть [готовые шаблоны](https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Security/DAST-API.gitlab-ci.yml) для DAST jobs приспособлены для Ultimate подписки, поэтому переписаны
 
-Шаблоны для DAST jobs приспособлены для ultimate tier, поэтому переписаны
+Этапы пайплайна:
 
         ┌─────────┐     ┌───────────┐     ┌──────────┐     ┌─────────┐
         │  Build  │ →   │   Test    │ →   │  Deploy  │ →   │  DAST   │
         └─────────┘     └───────────┘     └──────────┘     └─────────┘
 
-GitLab Runner [automatically](https://docs.gitlab.com/ci/runners/configure_runners/#git-strategy) clones your repository into the container before running your job.
+GitLab Runner [автоматически](https://docs.gitlab.com/ci/runners/configure_runners/#git-strategy) клонирует ваш репозиторий в контейнер с джобой прежде чем выполнять указанный script
 
 <details>
 
@@ -742,3 +742,13 @@ return $config;
 }
 ```
 
+## USEFUL LINKS:
+- GitLab template examples: https://docs.gitlab.com/ci/examples/#cicd-templates
+- GitLab template usage documentation: https://docs.gitlab.com/ci/yaml/includes/#include-a-single-configuration-file
+- GitLab application security documentation: https://docs.gitlab.com/user/application_security/
+- GitLab DevSecOps tutorial: https://gitlab-da.gitlab.io/tutorials/security-and-governance/devsecops/simply-vulnerable-notes/
+- GitLab security scanner integration documentation: https://docs.gitlab.com/user/application_security/#security-scanning-without-auto-devops
+- GitLab security and governance solutions: https://about.gitlab.com/solutions/security-compliance/
+- GitLab DevSecOps demo application: https://gitlab.com/gitlab-da/tutorials/security-and-governance/devsecops/simply-vulnerable-notes
+- PHP template https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/PHP.gitlab-ci.yml
+- Restrict test coverage decrease: https://rpadovani.com/gitlab-code-coverage#the-gitlab-pipeline-job

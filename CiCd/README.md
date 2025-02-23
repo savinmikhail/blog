@@ -15,7 +15,7 @@
 ## Почему CI/CD полезен и для бизнеса и для разработки
 
 ![img.png](img.png)
-
+![img_1.png](img_1.png)
 [Доклад о том, зачем использовать пайплайны?](https://youtu.be/jFSSV1pdZTw?si=RY7jP0HmlCeI_mM9x) 
 
 CI/CD расшифровывается как Continuous Integration / Continuous Delivery. 

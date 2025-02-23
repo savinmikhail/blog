@@ -1,21 +1,19 @@
 # Практическое руководство по настройке CI/CD для PHP проектов
 
+![img_1.png](img_1.png)
+
 ## Содержание
-3. [Почему CI/CD полезен и для бизнеса и для разработки](#почему-cicd-полезен-и-для-бизнеса-и-для-разработки)
-4. [Структура пайплайна](#структура-пайплайна)
-5. [Этапы пайплайна](#этапы-пайплайна)
+1. [Почему CI/CD полезен и для бизнеса и для разработки](#почему-cicd-полезен-и-для-бизнеса-и-для-разработки)
+2. [Структура пайплайна](#структура-пайплайна)
+3. [Этапы пайплайна](#этапы-пайплайна)
     - [Build](#build)
     - [Test](#test)
     - [Deploy](#deploy)
     - [DAST](#dast)
-6. [Лучшие практики](#лучшие-практики)
-7. [Типичные проблемы и их решения](#типичные-проблемы-и-их-решения)
-8. [Инструменты безопасности](#инструменты-безопасности)
+4. [Полный пример](#полный-пример)
 
 ## Почему CI/CD полезен и для бизнеса и для разработки
 
-![img.png](img.png)
-![img_1.png](img_1.png)
 [Доклад о том, зачем использовать пайплайны?](https://youtu.be/jFSSV1pdZTw?si=RY7jP0HmlCeI_mM9x) 
 
 CI/CD расшифровывается как Continuous Integration / Continuous Delivery. 
@@ -64,6 +62,487 @@ CI/CD расшифровывается как Continuous Integration / Continuou
 Каждый эта содержит набор задач (jobs), каждая задача может запускать несколько команд
 
 GitLab Runner [автоматически](https://docs.gitlab.com/ci/runners/configure_runners/#git-strategy) клонирует ваш репозиторий в контейнер с джобой прежде чем выполнять указанный script
+
+## Этапы пайплайна
+Приведу здесь используемые мной конфиги для ряда job, чтобы было проще вам взять и использовать пайплайн. Конечно стоит изучить самостоятельно особенности каждого инструмента
+
+Приведу здесь примеры violations, которые репортуют инструменты, чтобы у вас сложилось представление, какой инструмент какую пользу может принести
+
+### Build
+
+### Test
+
+#### Rector
+<details>
+
+<summary><strong>rector.php</strong></summary>
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Rector\Config\RectorConfig;
+use Rector\Php80\Rector\Class_\StringableForToStringRector;
+use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
+
+return RectorConfig::configure()
+    ->withPaths([
+        __DIR__ . '/bin/console',
+        __DIR__ . '/config',
+        __DIR__ . '/public',
+        __DIR__ . '/src',
+        __DIR__ . '/tests',
+    ])
+    ->withParallel()
+    ->withCache(__DIR__ . '/var/rector')
+    ->withPhpSets(php82: true)
+    ->withSkip([
+        StringableForToStringRector::class,
+        AddOverrideAttributeToOverriddenMethodsRector::class,
+    ]);
+
+```
+</details>
+
+#### PHPUnit
+
+<details>
+
+<summary><strong>phpunit.xml.dist</strong></summary>
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         cacheDirectory="var/phpunit"
+         requireCoverageMetadata="true"
+         beStrictAboutOutputDuringTests="true"
+         failOnRisky="true"
+         failOnWarning="true"
+>
+    <php>
+        <ini name="display_errors" value="1"/>
+        <ini name="error_reporting" value="-1"/>
+        <server name="APP_ENV" value="test" force="true"/>
+    </php>
+
+    <testsuites>
+        <testsuite name="default">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <source restrictDeprecations="true" restrictNotices="true" restrictWarnings="true">
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
+</phpunit>
+```
+</details>
+
+#### Psalm
+
+<details>
+
+<summary><strong>psalm.xml.dist</strong></summary>
+
+```xml
+<?xml version="1.0"?>
+<psalm
+    cacheDirectory="var/psalm"
+    checkForThrowsDocblock="true"
+    checkForThrowsInGlobalScope="true"
+    disableSuppressAll="true"
+    ensureArrayStringOffsetsExist="true"
+    errorLevel="1"
+    findUnusedCode="false"
+    findUnusedBaselineEntry="true"
+    findUnusedPsalmSuppress="true"
+    findUnusedVariablesAndParams="true"
+    memoizeMethodCallResults="true"
+    reportMixedIssues="true"
+    sealAllMethods="true"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+>
+    <projectFiles>
+        <directory name="config"/>
+        <directory name="public"/>
+        <directory name="src"/>
+        <directory name="telephantast"/>
+        <directory name="tests"/>
+        <file name="bin/console"/>
+        <ignoreFiles>
+            <directory name="var"/>
+            <directory name="vendor"/>
+        </ignoreFiles>
+    </projectFiles>
+
+    <forbiddenFunctions>
+        <function name="dd"/>
+        <function name="die"/>
+        <function name="dump"/>
+        <function name="echo"/>
+        <function name="empty"/>
+        <function name="eval"/>
+        <function name="exit"/>
+        <function name="print"/>
+        <function name="print_r"/>
+        <function name="var_export"/>
+    </forbiddenFunctions>
+
+    <issueHandlers>
+        <MissingThrowsDocblock>
+            <errorLevel type="suppress">
+                <directory name="tests"/>
+            </errorLevel>
+        </MissingThrowsDocblock>
+        <MixedAssignment errorLevel="suppress"/>
+    </issueHandlers>
+
+    <ignoreExceptions>
+        <classAndDescendants name="LogicException"/>
+        <classAndDescendants name="RuntimeException"/>
+        <classAndDescendants name="ReflectionException"/>
+        <classAndDescendants name="JsonException"/>
+        <classAndDescendants name="Doctrine\DBAL\Exception"/>
+        <classAndDescendants name="Psr\Container\ContainerExceptionInterface"/>
+    </ignoreExceptions>
+
+    <stubs>
+        <file name="stubs/Bunny/AbstractClient.phpstub"/>
+        <file name="stubs/Bunny/Async/Client.phpstub"/>
+        <file name="stubs/Bunny/Channel.phpstub"/>
+        <file name="stubs/Psr/Container/ContainerInterface.phpstub"/>
+        <file name="stubs/React/Promise/PromiseInterface.phpstub"/>
+    </stubs>
+</psalm>
+```
+</details>
+
+#### Deptrack
+Создаем много конфигурационных файлов под каждый вид проверок: например для директорий в приложении, для модулей в src, для package-by-feature в модулях и тп, не стоит все пихать в один файл
+
+<details>
+
+<summary><strong>deptrac.directories.yaml</strong></summary>
+
+```yaml
+
+deptrac:
+    analyser:
+        types:
+            - class
+            - class_superglobal
+            - file
+            - function
+            - function_call
+            - function_superglobal
+            - use
+
+    paths:
+        - bin
+        - config
+        - migrations
+        - public
+        - src
+        - tests
+
+    layers:
+        - { name: bin,        collectors: [ { type: directory, value: ./bin/.* } ] }
+        - { name: migrations, collectors: [ { type: directory, value: ./migrations/.* } ] }
+        - { name: public,     collectors: [ { type: directory, value: ./public/.* } ] }
+        - { name: src,        collectors: [ { type: directory, value: ./src/.* } ] }
+        - { name: tests,      collectors: [ { type: directory, value: ./tests/.* } ] }
+
+    ruleset:
+        bin: [src]
+        migrations:
+        public: [src]
+        tests: [src]
+```
+</details>
+
+#### PHP-CS-Fixer
+<details>
+
+<summary><strong>php-cs-fixer.php</strong></summary>
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use PhpCsFixer\Config;
+use PhpCsFixer\Finder;
+use PHPyh\CodingStandard\PhpCsFixerCodingStandard;
+
+$finder = (new Finder())
+    ->in(__DIR__)
+    ->exclude('var')
+    ->append([
+        __FILE__,
+        __DIR__ . '/bin/console',
+    ]);
+
+$config = (new Config())
+    ->setCacheFile(__DIR__ . '/var/.php-cs-fixer.cache')
+    ->setFinder($finder);
+
+(new PhpCsFixerCodingStandard())->applyTo($config);
+
+return $config;
+
+```
+</details>
+
+#### Composer unused
+<details>
+
+<summary><strong>composer-unused.php</strong></summary>
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use ComposerUnused\ComposerUnused\Configuration\Configuration;
+use ComposerUnused\ComposerUnused\Configuration\NamedFilter;
+
+return static fn(Configuration $config): Configuration => $config
+    ->addNamedFilter(NamedFilter::fromString('baldinof/roadrunner-bundle'))
+    ->addNamedFilter(NamedFilter::fromString('doctrine/doctrine-migrations-bundle'))
+    ->addNamedFilter(NamedFilter::fromString('phpstan/phpdoc-parser'))
+    ->addNamedFilter(NamedFilter::fromString('revolt/event-loop-adapter-react'))
+    ->addNamedFilter(NamedFilter::fromString('symfony/dotenv'))
+    ->addNamedFilter(NamedFilter::fromString('symfony/flex'))
+    ->addNamedFilter(NamedFilter::fromString('symfony/monolog-bundle'))
+    ->addNamedFilter(NamedFilter::fromString('symfony/runtime'))
+    ->addNamedFilter(NamedFilter::fromString('symfony/security-bundle'));
+```
+
+</details>
+
+#### KICS
+</details>
+
+<details>
+
+<summary><strong>kics</strong></summary>
+
+```json
+{
+    "id": "f1a0bb482c0f478d4b6592a51da84de5f42cb34b4e185a46baad7c622ffa96f4",
+    "category": "sast",
+    "name": "Missing User Instruction",
+    "description": "A user should be specified in the dockerfile, otherwise the image will run as root",
+    "cve": "kics_id:fd54f200-402c-4333-a5a4-36ef6709af2f:2:0",
+    "severity": "Critical",
+    "scanner": {
+        "id": "kics",
+        "name": "kics"
+    },
+    "location": {
+        "file": "Docker/Dockerfile",
+        "start_line": 2
+    },
+    "identifiers": [
+        {
+            "type": "kics_id",
+            "name": "Missing User Instruction",
+            "value": "fd54f200-402c-4333-a5a4-36ef6709af2f",
+            "url": "https://docs.docker.com/engine/reference/builder/#user"
+        }
+    ]
+}
+```
+
+</details>
+
+#### Nuclei
+
+<details>
+
+<summary><strong>nuclei</strong></summary>
+
+```json
+{
+  "info": {
+    "name": "PHPinfo Page - Detect",
+    "author": [
+      "pdteam",
+      "daffainfo",
+      "meme-lord",
+      "dhiyaneshdk",
+      "wabafet",
+      "mastercho"
+    ],
+    "tags": [
+      "config",
+      "exposure",
+      "phpinfo"
+    ],
+    "description": "PHPinfo page was detected. The output of the phpinfo() command can reveal sensitive and detailed PHP environment information.\n",
+    "severity": "low",
+    "metadata": {
+      "max-request": 25
+    },
+    "classification": {
+      "cve-id": null,
+      "cwe-id": [
+        "cwe-200"
+      ]
+    },
+    "remediation": "Remove PHP Info pages from publicly accessible sites, or restrict access to authorized users only."
+  }
+}
+```
+
+</details>
+
+#### Trivy
+
+<details>
+
+<summary><strong>Trivy</strong></summary>
+
+```json
+{
+    "id": "024fd5bd42b3cfed92af89216a3c074c97c20b35",
+    "severity": "High",
+    "location": {
+        "dependency": {
+            "package": {
+                "name": "libxml2"
+            },
+            "version": "2.9.14+dfsg-1.3~deb12u1"
+        },
+        "operating_system": "debian 12.9",
+        "image": "registry.gitlab.com/tsyren-dashidymbrylov/online-shop:master"
+    },
+    "identifiers": [
+        {
+            "type": "cve",
+            "name": "CVE-2024-25062",
+            "value": "CVE-2024-25062",
+            "url": "https://access.redhat.com/errata/RHSA-2024:2679"
+        }
+    ],
+    "links": [
+        {
+            "url": "https://access.redhat.com/errata/RHSA-2024:2679"
+        },
+        {
+            "url": "https://access.redhat.com/security/cve/CVE-2024-25062"
+        },
+        {
+            "url": "https://bugzilla.redhat.com/2262726"
+        },
+        {
+            "url": "https://bugzilla.redhat.com/show_bug.cgi?id=2262726"
+        },
+        {
+            "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-25062"
+        },
+        {
+            "url": "https://errata.almalinux.org/9/ALSA-2024-2679.html"
+        },
+        {
+            "url": "https://errata.rockylinux.org/RLSA-2024:3626"
+        },
+        {
+            "url": "https://gitlab.gnome.org/GNOME/libxml2/-/issues/604"
+        },
+        {
+            "url": "https://gitlab.gnome.org/GNOME/libxml2/-/tags"
+        },
+        {
+            "url": "https://linux.oracle.com/cve/CVE-2024-25062.html"
+        },
+        {
+            "url": "https://linux.oracle.com/errata/ELSA-2024-3626.html"
+        },
+        {
+            "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-25062"
+        },
+        {
+            "url": "https://ubuntu.com/security/notices/USN-6658-1"
+        },
+        {
+            "url": "https://ubuntu.com/security/notices/USN-6658-2"
+        },
+        {
+            "url": "https://www.cve.org/CVERecord?id=CVE-2024-25062"
+        }
+    ],
+    "details": {
+        "vulnerable_package": {
+            "name": "Vulnerable Package",
+            "type": "text",
+            "value": "libxml2:2.9.14+dfsg-1.3~deb12u1"
+        },
+        "vendor_status": {
+            "name": "Vendor Status",
+            "type": "text",
+            "value": "affected"
+        }
+    },
+    "description": "An issue was discovered in libxml2 before 2.11.7 and 2.12.x before 2.12.5. When using the XML Reader interface with DTD validation and XInclude expansion enabled, processing crafted XML documents can lead to an xmlValidatePopElement use-after-free.",
+    "solution": "No solution provided"
+}
+```
+</details>
+
+#### Gitleaks
+
+<details>
+
+<summary><strong>Gitleaks</strong></summary>
+
+```json
+{
+    "id": "f24458cd78b17036e70038cb3386ac1b6d1d985160a5101d528197a2c114ce4a",
+    "category": "secret_detection",
+    "name": "Password in URL",
+    "description": "Password in URL\n\nFor general guidance on handling security incidents with regards to leaked keys, please see the GitLab documentation on\n[Credential exposure to the internet](https://docs.gitlab.com/ee/security/responding_to_security_incidents.html#credential-exposure-to-public-internet).",
+    "cve": ".env:a013fea9cebb7f3c805ca0c7d1ec17bac4bbe3c18079eb0b45f96a0ce11f18b6:Password in URL",
+    "severity": "Critical",
+    "confidence": "Unknown",
+    "raw_source_code_extract": "amqp://guest:guest@localhost:5672/%2f/messages",
+    "scanner": {
+        "id": "gitleaks",
+        "name": "Gitleaks"
+    },
+    "location": {
+        "file": ".env",
+        "commit": {
+            "author": "Tsyren Dashidymbrylov",
+            "date": "2025-02-16T04:27:25Z",
+            "message": "Update .gitlab-ci.yml file",
+            "sha": "6e36ee79de5fe9405e5cbac0dedbcff530d72363"
+        },
+        "start_line": 34
+    },
+    "identifiers": [
+        {
+            "type": "gitleaks_rule_id",
+            "name": "Gitleaks rule ID Password in URL",
+            "value": "Password in URL"
+        }
+    ]
+}
+```
+</details>
+
+### Deploy
+
+### DAST
+
+## Полный пример
 
 <details>
 
@@ -355,464 +834,6 @@ dast_nuclei:
     paths:
       - nuclei-report.jsonl
 
-```
-</details>
-
-## Примеры конфигов
-
-Приведу здесь используемые мной конфиги для ряда job, чтобы было проще вам взять и использовать пайплайн. Конечно стоит изучить самостоятельно особенности каждого инструмента
-
-<details>
-
-<summary><strong>rector.php</strong></summary>
-
-```php
-<?php
-
-declare(strict_types=1);
-
-use Rector\Config\RectorConfig;
-use Rector\Php80\Rector\Class_\StringableForToStringRector;
-use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
-
-return RectorConfig::configure()
-    ->withPaths([
-        __DIR__ . '/bin/console',
-        __DIR__ . '/config',
-        __DIR__ . '/public',
-        __DIR__ . '/src',
-        __DIR__ . '/tests',
-    ])
-    ->withParallel()
-    ->withCache(__DIR__ . '/var/rector')
-    ->withPhpSets(php82: true)
-    ->withSkip([
-        StringableForToStringRector::class,
-        AddOverrideAttributeToOverriddenMethodsRector::class,
-    ]);
-
-```
-</details>
-
-<details>
-
-<summary><strong>phpunit.xml.dist</strong></summary>
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-         bootstrap="tests/bootstrap.php"
-         cacheDirectory="var/phpunit"
-         requireCoverageMetadata="true"
-         beStrictAboutOutputDuringTests="true"
-         failOnRisky="true"
-         failOnWarning="true"
->
-    <php>
-        <ini name="display_errors" value="1"/>
-        <ini name="error_reporting" value="-1"/>
-        <server name="APP_ENV" value="test" force="true"/>
-    </php>
-
-    <testsuites>
-        <testsuite name="default">
-            <directory>tests</directory>
-        </testsuite>
-    </testsuites>
-
-    <source restrictDeprecations="true" restrictNotices="true" restrictWarnings="true">
-        <include>
-            <directory>src</directory>
-        </include>
-    </source>
-</phpunit>
-```
-</details>
-
-<details>
-
-<summary><strong>psalm.xml.dist</strong></summary>
-
-```xml
-<?xml version="1.0"?>
-<psalm
-    cacheDirectory="var/psalm"
-    checkForThrowsDocblock="true"
-    checkForThrowsInGlobalScope="true"
-    disableSuppressAll="true"
-    ensureArrayStringOffsetsExist="true"
-    errorLevel="1"
-    findUnusedCode="false"
-    findUnusedBaselineEntry="true"
-    findUnusedPsalmSuppress="true"
-    findUnusedVariablesAndParams="true"
-    memoizeMethodCallResults="true"
-    reportMixedIssues="true"
-    sealAllMethods="true"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns="https://getpsalm.org/schema/config"
-    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
->
-    <projectFiles>
-        <directory name="config"/>
-        <directory name="public"/>
-        <directory name="src"/>
-        <directory name="telephantast"/>
-        <directory name="tests"/>
-        <file name="bin/console"/>
-        <ignoreFiles>
-            <directory name="var"/>
-            <directory name="vendor"/>
-        </ignoreFiles>
-    </projectFiles>
-
-    <forbiddenFunctions>
-        <function name="dd"/>
-        <function name="die"/>
-        <function name="dump"/>
-        <function name="echo"/>
-        <function name="empty"/>
-        <function name="eval"/>
-        <function name="exit"/>
-        <function name="print"/>
-        <function name="print_r"/>
-        <function name="var_export"/>
-    </forbiddenFunctions>
-
-    <issueHandlers>
-        <MissingThrowsDocblock>
-            <errorLevel type="suppress">
-                <directory name="tests"/>
-            </errorLevel>
-        </MissingThrowsDocblock>
-        <MixedAssignment errorLevel="suppress"/>
-    </issueHandlers>
-
-    <ignoreExceptions>
-        <classAndDescendants name="LogicException"/>
-        <classAndDescendants name="RuntimeException"/>
-        <classAndDescendants name="ReflectionException"/>
-        <classAndDescendants name="JsonException"/>
-        <classAndDescendants name="Doctrine\DBAL\Exception"/>
-        <classAndDescendants name="Psr\Container\ContainerExceptionInterface"/>
-    </ignoreExceptions>
-
-    <stubs>
-        <file name="stubs/Bunny/AbstractClient.phpstub"/>
-        <file name="stubs/Bunny/Async/Client.phpstub"/>
-        <file name="stubs/Bunny/Channel.phpstub"/>
-        <file name="stubs/Psr/Container/ContainerInterface.phpstub"/>
-        <file name="stubs/React/Promise/PromiseInterface.phpstub"/>
-    </stubs>
-</psalm>
-```
-</details>
-
-<details>
-
-<summary><strong>deptrac.directories.yaml</strong></summary>
-
-```yaml
-
-deptrac:
-    analyser:
-        types:
-            - class
-            - class_superglobal
-            - file
-            - function
-            - function_call
-            - function_superglobal
-            - use
-
-    paths:
-        - bin
-        - config
-        - migrations
-        - public
-        - src
-        - tests
-
-    layers:
-        - { name: bin,        collectors: [ { type: directory, value: ./bin/.* } ] }
-        - { name: migrations, collectors: [ { type: directory, value: ./migrations/.* } ] }
-        - { name: public,     collectors: [ { type: directory, value: ./public/.* } ] }
-        - { name: src,        collectors: [ { type: directory, value: ./src/.* } ] }
-        - { name: tests,      collectors: [ { type: directory, value: ./tests/.* } ] }
-
-    ruleset:
-        bin: [src]
-        migrations:
-        public: [src]
-        tests: [src]
-```
-</details>
-
-
-<details>
-
-<summary><strong>composer-unused.php</strong></summary>
-
-```php
-<?php
-
-declare(strict_types=1);
-
-use ComposerUnused\ComposerUnused\Configuration\Configuration;
-use ComposerUnused\ComposerUnused\Configuration\NamedFilter;
-
-return static fn(Configuration $config): Configuration => $config
-    ->addNamedFilter(NamedFilter::fromString('baldinof/roadrunner-bundle'))
-    ->addNamedFilter(NamedFilter::fromString('doctrine/doctrine-migrations-bundle'))
-    ->addNamedFilter(NamedFilter::fromString('phpstan/phpdoc-parser'))
-    ->addNamedFilter(NamedFilter::fromString('revolt/event-loop-adapter-react'))
-    ->addNamedFilter(NamedFilter::fromString('symfony/dotenv'))
-    ->addNamedFilter(NamedFilter::fromString('symfony/flex'))
-    ->addNamedFilter(NamedFilter::fromString('symfony/monolog-bundle'))
-    ->addNamedFilter(NamedFilter::fromString('symfony/runtime'))
-    ->addNamedFilter(NamedFilter::fromString('symfony/security-bundle'));
-```
-
-</details>
-
-<details>
-
-<summary><strong>php-cs-fixer.php</strong></summary>
-
-```php
-<?php
-
-declare(strict_types=1);
-
-use PhpCsFixer\Config;
-use PhpCsFixer\Finder;
-use PHPyh\CodingStandard\PhpCsFixerCodingStandard;
-
-$finder = (new Finder())
-    ->in(__DIR__)
-    ->exclude('var')
-    ->append([
-        __FILE__,
-        __DIR__ . '/bin/console',
-    ]);
-
-$config = (new Config())
-    ->setCacheFile(__DIR__ . '/var/.php-cs-fixer.cache')
-    ->setFinder($finder);
-
-(new PhpCsFixerCodingStandard())->applyTo($config);
-
-return $config;
-
-```
-</details>
-
-## Примеры найденных ошибок
-
-Приведу здесь примеры violations, которые репортуют инструменты, чтобы у вас сложилось представление, какой инструмент какую пользу может принести
-
-</details>
-
-<details>
-
-<summary><strong>kics</strong></summary>
-
-```json
-{
-    "id": "f1a0bb482c0f478d4b6592a51da84de5f42cb34b4e185a46baad7c622ffa96f4",
-    "category": "sast",
-    "name": "Missing User Instruction",
-    "description": "A user should be specified in the dockerfile, otherwise the image will run as root",
-    "cve": "kics_id:fd54f200-402c-4333-a5a4-36ef6709af2f:2:0",
-    "severity": "Critical",
-    "scanner": {
-        "id": "kics",
-        "name": "kics"
-    },
-    "location": {
-        "file": "Docker/Dockerfile",
-        "start_line": 2
-    },
-    "identifiers": [
-        {
-            "type": "kics_id",
-            "name": "Missing User Instruction",
-            "value": "fd54f200-402c-4333-a5a4-36ef6709af2f",
-            "url": "https://docs.docker.com/engine/reference/builder/#user"
-        }
-    ]
-}
-```
-
-</details>
-
-<details>
-
-<summary><strong>nuclei</strong></summary>
-
-```json
-{
-  "info": {
-    "name": "PHPinfo Page - Detect",
-    "author": [
-      "pdteam",
-      "daffainfo",
-      "meme-lord",
-      "dhiyaneshdk",
-      "wabafet",
-      "mastercho"
-    ],
-    "tags": [
-      "config",
-      "exposure",
-      "phpinfo"
-    ],
-    "description": "PHPinfo page was detected. The output of the phpinfo() command can reveal sensitive and detailed PHP environment information.\n",
-    "severity": "low",
-    "metadata": {
-      "max-request": 25
-    },
-    "classification": {
-      "cve-id": null,
-      "cwe-id": [
-        "cwe-200"
-      ]
-    },
-    "remediation": "Remove PHP Info pages from publicly accessible sites, or restrict access to authorized users only."
-  }
-}
-```
-
-</details>
-
-<details>
-
-<summary><strong>Trivy</strong></summary>
-
-```json
-{
-    "id": "024fd5bd42b3cfed92af89216a3c074c97c20b35",
-    "severity": "High",
-    "location": {
-        "dependency": {
-            "package": {
-                "name": "libxml2"
-            },
-            "version": "2.9.14+dfsg-1.3~deb12u1"
-        },
-        "operating_system": "debian 12.9",
-        "image": "registry.gitlab.com/tsyren-dashidymbrylov/online-shop:master"
-    },
-    "identifiers": [
-        {
-            "type": "cve",
-            "name": "CVE-2024-25062",
-            "value": "CVE-2024-25062",
-            "url": "https://access.redhat.com/errata/RHSA-2024:2679"
-        }
-    ],
-    "links": [
-        {
-            "url": "https://access.redhat.com/errata/RHSA-2024:2679"
-        },
-        {
-            "url": "https://access.redhat.com/security/cve/CVE-2024-25062"
-        },
-        {
-            "url": "https://bugzilla.redhat.com/2262726"
-        },
-        {
-            "url": "https://bugzilla.redhat.com/show_bug.cgi?id=2262726"
-        },
-        {
-            "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-25062"
-        },
-        {
-            "url": "https://errata.almalinux.org/9/ALSA-2024-2679.html"
-        },
-        {
-            "url": "https://errata.rockylinux.org/RLSA-2024:3626"
-        },
-        {
-            "url": "https://gitlab.gnome.org/GNOME/libxml2/-/issues/604"
-        },
-        {
-            "url": "https://gitlab.gnome.org/GNOME/libxml2/-/tags"
-        },
-        {
-            "url": "https://linux.oracle.com/cve/CVE-2024-25062.html"
-        },
-        {
-            "url": "https://linux.oracle.com/errata/ELSA-2024-3626.html"
-        },
-        {
-            "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-25062"
-        },
-        {
-            "url": "https://ubuntu.com/security/notices/USN-6658-1"
-        },
-        {
-            "url": "https://ubuntu.com/security/notices/USN-6658-2"
-        },
-        {
-            "url": "https://www.cve.org/CVERecord?id=CVE-2024-25062"
-        }
-    ],
-    "details": {
-        "vulnerable_package": {
-            "name": "Vulnerable Package",
-            "type": "text",
-            "value": "libxml2:2.9.14+dfsg-1.3~deb12u1"
-        },
-        "vendor_status": {
-            "name": "Vendor Status",
-            "type": "text",
-            "value": "affected"
-        }
-    },
-    "description": "An issue was discovered in libxml2 before 2.11.7 and 2.12.x before 2.12.5. When using the XML Reader interface with DTD validation and XInclude expansion enabled, processing crafted XML documents can lead to an xmlValidatePopElement use-after-free.",
-    "solution": "No solution provided"
-}
-```
-</details>
-
-<details>
-
-<summary><strong>Gitleaks</strong></summary>
-
-```json
-{
-    "id": "f24458cd78b17036e70038cb3386ac1b6d1d985160a5101d528197a2c114ce4a",
-    "category": "secret_detection",
-    "name": "Password in URL",
-    "description": "Password in URL\n\nFor general guidance on handling security incidents with regards to leaked keys, please see the GitLab documentation on\n[Credential exposure to the internet](https://docs.gitlab.com/ee/security/responding_to_security_incidents.html#credential-exposure-to-public-internet).",
-    "cve": ".env:a013fea9cebb7f3c805ca0c7d1ec17bac4bbe3c18079eb0b45f96a0ce11f18b6:Password in URL",
-    "severity": "Critical",
-    "confidence": "Unknown",
-    "raw_source_code_extract": "amqp://guest:guest@localhost:5672/%2f/messages",
-    "scanner": {
-        "id": "gitleaks",
-        "name": "Gitleaks"
-    },
-    "location": {
-        "file": ".env",
-        "commit": {
-            "author": "Tsyren Dashidymbrylov",
-            "date": "2025-02-16T04:27:25Z",
-            "message": "Update .gitlab-ci.yml file",
-            "sha": "6e36ee79de5fe9405e5cbac0dedbcff530d72363"
-        },
-        "start_line": 34
-    },
-    "identifiers": [
-        {
-            "type": "gitleaks_rule_id",
-            "name": "Gitleaks rule ID Password in URL",
-            "value": "Password in URL"
-        }
-    ]
-}
 ```
 </details>
 

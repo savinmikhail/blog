@@ -25,8 +25,16 @@ USEFUL LINKS:
 
 Шаблоны для DAST jobs приспособлены для ultimate tier, поэтому переписаны
 
+        ┌─────────┐     ┌───────────┐     ┌──────────┐     ┌─────────┐
+        │  Build  │ →   │   Test    │ →   │  Deploy  │ →   │  DAST   │
+        └─────────┘     └───────────┘     └──────────┘     └─────────┘
+
+GitLab Runner [automatically](https://docs.gitlab.com/ci/runners/configure_runners/#git-strategy) clones your repository into the container before running your job.
+
 <details>
 
+
+# Add infection/ yaml linting/ 
 <summary><strong>.gitlab-ci.yml</strong></summary>
 
 ```yaml
@@ -79,7 +87,7 @@ cs:
 
 phpunit:
   stage: test
-  image: php:8.2
+  image: $DOCKER_IMAGE
   services:
     - name: postgres:14
       alias: postgres
@@ -97,6 +105,7 @@ phpunit:
     - XDEBUG_MODE=coverage php ./vendor/bin/phpunit --coverage-text --coverage-cobertura=coverage.cobertura.xml --coverage-clover=coverage.xml
   coverage: '/^\s*Lines:\s*\d+.\d+\%/'
   artifacts:
+    when: always
     paths:
       - coverage.cobertura.xml
       - coverage.xml
@@ -153,12 +162,13 @@ phpmd:
   script:
     - vendor/bin/phpmd src json phpmd.xml --reportfile phpmd_result.json
   artifacts:
+    when: always
     paths:
       - phpmd_result.json
 
 migrations_rollback_test:
   stage: test
-  image: php:8.2
+  image: $DOCKER_IMAGE
   services:
     - name: postgres:14
       alias: postgres
@@ -249,6 +259,9 @@ trivy_container_scan:
   # Enables https://docs.gitlab.com/ee/user/application_security/container_scanning/ (Container Scanning report is available on GitLab EE Ultimate or GitLab.com Gold)
   artifacts:
     when: always
+    name: gl-container-scanning-report.json
+    paths:
+      - gl-container-scanning-report.json
     reports:
       container_scanning: gl-container-scanning-report.json
   stage: test
@@ -261,6 +274,7 @@ kics-ioc-scan:
   script:
     - kics scan --no-progress -p ${PWD} -o ${PWD} --report-formats json --output-name kics-results
   artifacts:
+    when: always
     name: kics-results.json
     paths:
       - kics-results.json
@@ -273,6 +287,7 @@ gitleaks_secret_detection:
   script:
     - gitleaks dir . --report-path gitleaks-report.json
   artifacts:
+    when: always
     paths:
       - gitleaks-report.json
 
@@ -304,6 +319,7 @@ dast_nuclei:
     - curl -I $TARGET_URL || echo "Target is unreachable"
     - nuclei -u $TARGET_URL -jsonl nuclei-report.jsonl || true
   artifacts:
+    when: always
     paths:
       - nuclei-report.jsonl
 

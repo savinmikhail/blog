@@ -49,6 +49,8 @@ CI/CD расшифровывается как Continuous Integration / Continuou
 
 Джобы в test stage запускаются параллельно, поэтому нет смысла располагать их из расчета fail fast
 
+![img_2.png](img_2.png)
+
 Я расположу их в порядке легкости и важности внедрения в проект (на мой субъективный взгляд)
 
 Есть [готовые шаблоны](https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Security/DAST-API.gitlab-ci.yml) для DAST jobs приспособлены для Ultimate подписки, поэтому переписаны

@@ -41,7 +41,7 @@ CI/CD расшифровывается как Continuous Integration / Continuou
 Чем больше проверок в пайплайне, тем медленнее вносятся изменения в код, поэтому не рекомендую затаскивать все возможные инструменты сразу. 
 Многие инструменты имеют функционал baseline, другие инструменты имеют настраиваемую сложность или фильтры найденных уязвимостейч, то облегчает их интеграцию.
 
-## Структура пайплайна
+## Этапы пайплайна
 
 Часть расписанных здесь джоб актуальна только для symfony (например di, schema validate)
 
@@ -63,12 +63,24 @@ CI/CD расшифровывается как Continuous Integration / Continuou
 
 GitLab Runner [автоматически](https://docs.gitlab.com/ci/runners/configure_runners/#git-strategy) клонирует ваш репозиторий в контейнер с джобой прежде чем выполнять указанный script
 
-## Этапы пайплайна
 Приведу здесь используемые мной конфиги для ряда job, чтобы было проще вам взять и использовать пайплайн. Конечно стоит изучить самостоятельно особенности каждого инструмента
 
 Приведу здесь примеры violations, которые репортуют инструменты, чтобы у вас сложилось представление, какой инструмент какую пользу может принести
 
+Создадим файл `.gitlab-ci.yaml`
+
+Опишем stages пайплайна
+
+```yaml
+stages:
+  - build
+  - test
+  - deploy
+  - DAST
+```
+
 ### Build
+
 
 ### Test
 
@@ -363,6 +375,142 @@ return static fn(Configuration $config): Configuration => $config
 
 </details>
 
+### Check coverage
+
+для работы джобы надо создать access token с правами `read_api`
+перейти в репозиторий -> settings -> ci/cd -> variables, добавить переменную с ключом CHECK_COVERAGE_TOKEN, значением в виде токена. Стоит сделать ее masked,  чтоб не было видно в логах и убрать флаг protected variable, чтоб оно работало со всех веток
+
+всю логику джобы можно описать в script, но лучше использовать before_script and after_script для SRP
+
+https://gitlab.com/api/v4/projects/67384433/pipelines/1689770968/jobs
+code coverage сохраняется как один из параметров джобы, и мы можем его достать
+```json
+{
+   "id": 9251826755,
+   "status": "success",
+   "stage": "test",
+   "name": "phpunit",
+   "ref": "develop",
+   "tag": false,
+   "coverage": 0.73,
+   "allow_failure": false,
+   "created_at": "2025-02-26T15:06:42.001Z",
+   "started_at": "2025-02-26T15:13:05.482Z",
+   "finished_at": "2025-02-26T15:15:02.498Z",
+   "erased_at": null,
+   "duration": 117.015687,
+   "queued_duration": 2.547127,
+   "user": {
+     "id": 22031530,
+     "username": "savinmikhail",
+     "name": "Mikhail",
+     "state": "active",
+     "locked": false,
+     "avatar_url": "https://secure.gravatar.com/avatar/b875f06f4a5b59fb1c051d348aee7c06c32fa04277ac9dfef77a1f01a72ebc87?s=80&d=identicon",
+     "web_url": "https://gitlab.com/savinmikhail",
+     "created_at": "2024-07-11T14:59:57.200Z",
+     "bio": "",
+     "location": "",
+     "public_email": null,
+     "skype": "",
+     "linkedin": "",
+     "twitter": "",
+     "discord": "",
+     "website_url": "",
+     "organization": "",
+     "job_title": "",
+     "pronouns": null,
+     "bot": false,
+     "work_information": null,
+     "followers": 0,
+     "following": 0,
+     "local_time": null
+   },
+   "commit": {
+     "id": "7fc44cab4baefb4745d2d4e0b9641059d99570bd",
+     "short_id": "7fc44cab",
+     "created_at": "2025-02-26T22:06:35.000+07:00",
+     "parent_ids": [
+       "58f54851649537ae88f1e89e798deb90b3397689"
+     ],
+     "title": "update .gitlab-ci.yml",
+     "message": "update .gitlab-ci.yml\n",
+     "author_name": "Mikhail",
+     "author_email": "salazar290720035017@gmail.com",
+     "authored_date": "2025-02-26T22:06:35.000+07:00",
+     "committer_name": "Mikhail",
+     "committer_email": "salazar290720035017@gmail.com",
+     "committed_date": "2025-02-26T22:06:35.000+07:00",
+     "trailers": {
+
+     },
+     "extended_trailers": {
+
+     },
+     "web_url": "https://gitlab.com/savinmikhail1/online-shop/-/commit/7fc44cab4baefb4745d2d4e0b9641059d99570bd"
+   },
+   "pipeline": {
+     "id": 1689770968,
+     "iid": 40,
+     "project_id": 67384433,
+     "sha": "7fc44cab4baefb4745d2d4e0b9641059d99570bd",
+     "ref": "develop",
+     "status": "running",
+     "source": "push",
+     "created_at": "2025-02-26T15:06:41.879Z",
+     "updated_at": "2025-02-26T15:06:43.058Z",
+     "web_url": "https://gitlab.com/savinmikhail1/online-shop/-/pipelines/1689770968"
+   },
+   "web_url": "https://gitlab.com/savinmikhail1/online-shop/-/jobs/9251826755",
+   "project": {
+     "ci_job_token_scope_enabled": false
+   },
+   "artifacts": [
+     {
+       "file_type": "cobertura",
+       "size": 2623,
+       "filename": "cobertura-coverage.xml.gz",
+       "file_format": "gzip"
+     }
+   ],
+   "runner": {
+     "id": 12270845,
+     "description": "1-green.saas-linux-small-amd64.runners-manager.gitlab.com/default",
+     "ip_address": null,
+     "active": true,
+     "paused": false,
+     "is_shared": true,
+     "runner_type": "instance_type",
+     "name": "gitlab-runner",
+     "online": true,
+     "status": "online"
+   },
+   "runner_manager": {
+     "id": 57464191,
+     "system_id": "s_deaa2ca09de7",
+     "version": "17.7.0~pre.103.g896916a8",
+     "revision": "896916a8",
+     "platform": "linux",
+     "architecture": "amd64",
+     "created_at": "2024-12-20T16:35:28.539Z",
+     "contacted_at": "2025-02-26T15:15:07.123Z",
+     "ip_address": "10.1.5.248",
+     "status": "online"
+   },
+   "artifacts_expire_at": "2025-03-28T15:13:53.503Z",
+   "archived": false,
+   "tag_list": []
+ }
+```
+
+пример аутпута 
+
+```shell
+Coverage decreased from 29.68% to 0.73%! Merge request blocked.
+```
+
+junit
+![img.png](img.png)
 #### Nuclei
 
 <details>
@@ -847,3 +995,5 @@ dast_nuclei:
 - GitLab DevSecOps demo application: https://gitlab.com/gitlab-da/tutorials/security-and-governance/devsecops/simply-vulnerable-notes
 - PHP template https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/PHP.gitlab-ci.yml
 - Restrict test coverage decrease: https://rpadovani.com/gitlab-code-coverage#the-gitlab-pipeline-job
+
+объяснить отсутсвие инструментов infection, yaml lint. добавить чек обновлений для композера раз в 2 недели. добавить comments-density to avoid tech debt

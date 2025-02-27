@@ -4,13 +4,12 @@
 
 ## Содержание
 1. [Почему CI/CD полезен и для бизнеса и для разработки](#почему-cicd-полезен-и-для-бизнеса-и-для-разработки)
-2. [Структура пайплайна](#структура-пайплайна)
-3. [Этапы пайплайна](#этапы-пайплайна)
+2. [Этапы пайплайна](#этапы-пайплайна)
     - [Build](#build)
     - [Test](#test)
     - [Deploy](#deploy)
     - [DAST](#dast)
-4. [Полный пример](#полный-пример)
+3. [Полный пример](#полный-пример)
 
 ## Почему CI/CD полезен и для бизнеса и для разработки
 
@@ -82,11 +81,154 @@ stages:
 ```
 
 ### Build
+Нам нужен образ приложения, в котором будем выполнять проверки качества кода. Но как правило такой образ вы не хотите деплоить, так как установлены dev зависимости, возможно включен xdebug и т.д.
+Поэтому мы будем собирать 2 образа
+Чтобы собрать образ, нам нужен докер, в то же время сама джоба сборки образа будет запускаться в докере, поэтому нам нужен dind (Docker-in-Docker), который запускает docker daemon в себе, и мы сможем использовать docker команды.
+Чтобы не заморачиваться с установкой в этот контейнер композера, я вынес билд приложения в отдельную джобу:
 
+```yaml
+build_dev_dependencies:
+   stage: build
+   image: composer:latest
+   script:
+      - composer install --no-interaction
+   artifacts:
+      paths:
+         - vendor/
+         - . # приложение автоматически клонируется в job, добавим в артефакт чтоб не клонировать дважды и не было проблем с workdir
+```
+
+Сборка образа 
+
+```yaml
+build_dev_image:
+   services:
+      - name: docker:dind
+        alias: dind
+   image: docker:20.10.16
+   stage: build
+   variables:
+      GIT_STRATEGY: none # отключаем клонирование приложения в контейнер
+   before_script:
+      - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+   script:
+      - docker build -t $DEV_IMAGE ./.docker/dev
+      - docker push $DEV_IMAGE # пушим image в registry гитлаба
+   needs: [build_dev_dependencies] # будет ждать пока build_dev_dependencies job не будет выполнена
+```
+
+По большей части то же самое сделаем для prod сборки
+
+```yaml
+build_prod_dependencies:
+   stage: build
+   image: composer:latest
+   variables:
+      APP_ENV: prod
+      APP_DEBUG: 0
+   script:
+      - composer install --no-dev --optimize-autoloader --no-interaction
+      - composer dump-env prod
+   artifacts:
+      paths:
+         - vendor/
+         - .
+   only:
+      - tags
+```
+Здесь мы не устанавливаем dev зависимости, и ускоряем работу autoloader: https://getcomposer.org/doc/articles/autoloader-optimization.md#optimization-level-1-class-map-generation
+И оптимизируем чтение .env* файлов: https://symfony.com/doc/current/deployment.html#b-configure-your-environment-variables
+Так же мы не хотим на каждый чих собирать prod сборку, поэтому конфигурируем запуск только когда был выпущен релиз (а значит и тег):
+```yaml
+   only:
+      - tags
+```
+
+Сборка образа:
+```yaml
+build_prod_image:
+   services:
+      - name: docker:dind
+        alias: dind
+   image: docker:20.10.16
+   stage: build
+   variables:
+      GIT_STRATEGY: none
+   before_script:
+      - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+   script:
+      - docker build -t $PROD_IMAGE ./.docker/prod
+      - docker push $PROD_IMAGE
+      - docker push $CI_REGISTRY_IMAGE:latest
+   needs: [build_prod_dependencies]
+   only:
+      - tags
+```
+
+Обратите внимание, что собирается с другого dockerfile:
+
+```yaml
+   - docker build -t $PROD_IMAGE ./.docker/prod
+```
+
+Теперь эти образы мы можем переиспользовать в дальнейших джобах, стягивая их с registry.
 
 ### Test
 
+#### PHP-CS-Fixer
+https://github.com/PHP-CS-Fixer/PHP-CS-Fixer
+
+```yaml
+cs:
+   stage: test
+   image: $DEV_IMAGE
+   variables:
+      GIT_STRATEGY: none
+   script:
+      - ./vendor/bin/php-cs-fixer -v --config=/app/.php-cs-fixer.dist.php fix --dry-run --stop-on-violation
+```
+
+пример конфига
+
+<details>
+
+<summary><strong>php-cs-fixer.php</strong></summary>
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use PhpCsFixer\Config;
+use PhpCsFixer\Finder;
+use PHPyh\CodingStandard\PhpCsFixerCodingStandard;
+
+$finder = (new Finder())
+    ->in(__DIR__)
+    ->exclude('var')
+    ->append([
+        __FILE__,
+        __DIR__ . '/bin/console',
+    ]);
+
+$config = (new Config())
+    ->setCacheFile(__DIR__ . '/var/.php-cs-fixer.cache')
+    ->setFinder($finder);
+
+(new PhpCsFixerCodingStandard())->applyTo($config);
+
+return $config;
+
+```
+
+</details>
+
+![img_4.png](img_4.png)
+
 #### Rector
+
+https://github.com/rectorphp/rector
+
 <details>
 
 <summary><strong>rector.php</strong></summary>
@@ -118,6 +260,7 @@ return RectorConfig::configure()
 
 ```
 </details>
+
 
 #### PHPUnit
 
@@ -281,39 +424,6 @@ deptrac:
 ```
 </details>
 
-#### PHP-CS-Fixer
-<details>
-
-<summary><strong>php-cs-fixer.php</strong></summary>
-
-```php
-<?php
-
-declare(strict_types=1);
-
-use PhpCsFixer\Config;
-use PhpCsFixer\Finder;
-use PHPyh\CodingStandard\PhpCsFixerCodingStandard;
-
-$finder = (new Finder())
-    ->in(__DIR__)
-    ->exclude('var')
-    ->append([
-        __FILE__,
-        __DIR__ . '/bin/console',
-    ]);
-
-$config = (new Config())
-    ->setCacheFile(__DIR__ . '/var/.php-cs-fixer.cache')
-    ->setFinder($finder);
-
-(new PhpCsFixerCodingStandard())->applyTo($config);
-
-return $config;
-
-```
-</details>
-
 #### Composer unused
 <details>
 
@@ -342,11 +452,12 @@ return static fn(Configuration $config): Configuration => $config
 </details>
 
 #### KICS
+
 </details>
 
 <details>
 
-<summary><strong>kics</strong></summary>
+<summary><strong>Пример violation</strong></summary>
 
 ```json
 {
@@ -506,10 +617,7 @@ code coverage сохраняется как один из параметров �
 ```
 
 пример аутпута 
-
-```shell
-Coverage decreased from 29.68% to 0.73%! Merge request blocked.
-```
+![img_3.png](img_3.png)
 
 junit
 ![img.png](img.png)
@@ -998,4 +1106,6 @@ dast_nuclei:
 - PHP template https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/PHP.gitlab-ci.yml
 - Restrict test coverage decrease: https://rpadovani.com/gitlab-code-coverage#the-gitlab-pipeline-job
 
+https://dev.to/muhamadhhassan/adding-phpunit-test-log-and-coverage-to-gitlab-cicd-33b5
+https://docs.gitlab.com/ci/testing/unit_test_reports/
 объяснить отсутсвие инструментов infection, yaml lint. добавить чек обновлений для композера раз в 2 недели. добавить comments-density to avoid tech debt

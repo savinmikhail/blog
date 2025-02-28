@@ -320,11 +320,11 @@ composer:
    image: $DEV_IMAGE
    script:
       - composer normalize --diff --dry-run
-      - composer validate # 
-      - vendor/bin/composer-require-checker check --config-file=composer-require-checker.json # 
-      - php8.2 vendor/bin/composer-unused # 
-      - composer audit # 
-      -  # 
+      - composer validate 
+      - vendor/bin/composer-require-checker check --config-file=composer-require-checker.json 
+      - php8.2 vendor/bin/composer-unused 
+      - composer audit 
+      - composer check-platform-reqs
 ```
 
 [composer normalize](https://github.com/ergebnis/composer-normalize)  форматирует `composer.json` в стандартный вид - например, сортирует поля в порядке востребованности - редко используемые поля (например `repositories`) ставятся ниже чем часто используемые (например `requires`)

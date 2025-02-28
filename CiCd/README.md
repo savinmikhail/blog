@@ -176,7 +176,10 @@ build_prod_image:
 ### Test
 
 #### PHP-CS-Fixer
+
 https://github.com/PHP-CS-Fixer/PHP-CS-Fixer
+
+Это линтер. Замечательно то, что он правит все найденные несоответствия конфигу автоматически, поэтому самый легкий для внедрения, в то же время очень важный, так как больше никогда вам не придется думать об оформлении кода
 
 ```yaml
 cs:
@@ -185,8 +188,11 @@ cs:
    variables:
       GIT_STRATEGY: none
    script:
-      - ./vendor/bin/php-cs-fixer -v --config=/app/.php-cs-fixer.dist.php fix --dry-run --stop-on-violation
+      - ./vendor/bin/php-cs-fixer -v --config=.php-cs-fixer.dist.php fix --dry-run --stop-on-violation --diff
 ```
+
+используем флаг `--dry-run`, чтобы в пайплайне у нас ничего не правилось, но просто находились ошибки. 
+`--stop-on-violation` нужен для оптимизации - после первой же найденной ошибки мы можем упасть, и не искать остальные
 
 пример конфига
 
@@ -225,44 +231,48 @@ return $config;
 
 ![img_4.png](img_4.png)
 
-#### Rector
-
-https://github.com/rectorphp/rector
-
-<details>
-
-<summary><strong>rector.php</strong></summary>
-
-```php
-<?php
-
-declare(strict_types=1);
-
-use Rector\Config\RectorConfig;
-use Rector\Php80\Rector\Class_\StringableForToStringRector;
-use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
-
-return RectorConfig::configure()
-    ->withPaths([
-        __DIR__ . '/bin/console',
-        __DIR__ . '/config',
-        __DIR__ . '/public',
-        __DIR__ . '/src',
-        __DIR__ . '/tests',
-    ])
-    ->withParallel()
-    ->withCache(__DIR__ . '/var/rector')
-    ->withPhpSets(php82: true)
-    ->withSkip([
-        StringableForToStringRector::class,
-        AddOverrideAttributeToOverriddenMethodsRector::class,
-    ]);
-
-```
-</details>
-
-
 #### PHPUnit
+
+```yaml
+phpunit:
+  stage: test
+  image: $DEV_IMAGE
+  services: # нам нужен контейнер с базой данных для тестов
+    - name: postgres:14
+      alias: postgres
+  variables:
+    APP_ENV: test
+    DATABASE_URL: "pgsql://postgres:postgres@postgres:5432/test_db"
+    POSTGRES_DB: test_db
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    GIT_STRATEGY: none
+  before_script:
+     - apt-get update && apt-get install -y postgresql-client
+     - until pg_isready -h postgres -p 5432 -U postgres; do sleep 1; done # ждем пока база внутри контейнера будет готова
+     - bin/console doctrine:database:create --if-not-exists
+     - bin/console doctrine:migrations:migrate --no-interaction
+  script:
+    - XDEBUG_MODE=coverage php ./vendor/bin/phpunit --colors=never --coverage-text --coverage-cobertura=coverage.cobertura.xml --log-junit phpunit-report.xml --do-not-cache-result
+  coverage: '/^\s*Lines:\s*\d+.\d+\%/'
+  artifacts:
+    when: always
+    reports:
+      junit: phpunit-report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.cobertura.xml
+```
+
+флаг `--colors=never` нужен чтобы проще доставать регуляркой покрытие
+`--coverage-text` выводит результат выполнения в консоль
+`--do-not-cache-result` оптимизация
+`--log-junit phpunit-report.xml` - опционально, выводит репорт в UI гитлаба:
+
+![img.png](img.png)
+
+
+пример конфига
 
 <details>
 
@@ -298,6 +308,63 @@ return RectorConfig::configure()
     </source>
 </phpunit>
 ```
+</details>
+
+#### Composer
+
+```yaml
+composer:
+   variables:
+      GIT_STRATEGY: none
+   stage: test
+   image: $DEV_IMAGE
+   script:
+      - composer normalize --diff --dry-run
+      - composer validate # 
+      - vendor/bin/composer-require-checker check --config-file=composer-require-checker.json # 
+      - php8.2 vendor/bin/composer-unused # 
+      - composer audit # 
+      -  # 
+```
+
+[composer normalize](https://github.com/ergebnis/composer-normalize)  форматирует `composer.json` в стандартный вид - например, сортирует поля в порядке востребованности - редко используемые поля (например `repositories`) ставятся ниже чем часто используемые (например `requires`)
+
+[composer validate](https://getcomposer.org/doc/03-cli.md#validate) - валидирует `composer.json` против [схемы](https://getcomposer.org/schema.json), и проверяет синхронизацию с `composer.lock`
+
+[composer-require-checker](https://github.com/maglnet/ComposerRequireChecker) - проверяет что вы не используете в коде транзитивные зависимости, чтобы вы могли явно добавить их в `require`, дабы в один момент они не выпали из сборки
+
+[vendor/bin/composer-unused](https://github.com/composer-unused/composer-unused) - проверяет, что у вас не стоит пакетов, которые вы нигде не используете
+
+[composer audit](https://getcomposer.org/doc/03-cli.md#audit) - проверяет наличие уязвимостей в установленных библиотеках (на удивление часто падает - раз в каждые месяца 2)
+
+[composer check-platform-reqs](https://getcomposer.org/doc/03-cli.md#check-platform-reqs) - проверяет, что на сервере установлены все необходимые для работы приложения расширения
+
+Пример конфига для `composer-unused`
+
+<details>
+
+<summary><strong>composer-unused.php</strong></summary>
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use ComposerUnused\ComposerUnused\Configuration\Configuration;
+use ComposerUnused\ComposerUnused\Configuration\NamedFilter;
+
+return static fn(Configuration $config): Configuration => $config
+    ->addNamedFilter(NamedFilter::fromString('baldinof/roadrunner-bundle'))
+    ->addNamedFilter(NamedFilter::fromString('doctrine/doctrine-migrations-bundle'))
+    ->addNamedFilter(NamedFilter::fromString('phpstan/phpdoc-parser'))
+    ->addNamedFilter(NamedFilter::fromString('revolt/event-loop-adapter-react'))
+    ->addNamedFilter(NamedFilter::fromString('symfony/dotenv'))
+    ->addNamedFilter(NamedFilter::fromString('symfony/flex'))
+    ->addNamedFilter(NamedFilter::fromString('symfony/monolog-bundle'))
+    ->addNamedFilter(NamedFilter::fromString('symfony/runtime'))
+    ->addNamedFilter(NamedFilter::fromString('symfony/security-bundle'));
+```
+
 </details>
 
 #### Psalm
@@ -381,6 +448,42 @@ return RectorConfig::configure()
 ```
 </details>
 
+#### Rector
+
+https://github.com/rectorphp/rector
+
+<details>
+
+<summary><strong>rector.php</strong></summary>
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Rector\Config\RectorConfig;
+use Rector\Php80\Rector\Class_\StringableForToStringRector;
+use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
+
+return RectorConfig::configure()
+    ->withPaths([
+        __DIR__ . '/bin/console',
+        __DIR__ . '/config',
+        __DIR__ . '/public',
+        __DIR__ . '/src',
+        __DIR__ . '/tests',
+    ])
+    ->withParallel()
+    ->withCache(__DIR__ . '/var/rector')
+    ->withPhpSets(php82: true)
+    ->withSkip([
+        StringableForToStringRector::class,
+        AddOverrideAttributeToOverriddenMethodsRector::class,
+    ]);
+
+```
+</details>
+
 #### Deptrack
 Создаем много конфигурационных файлов под каждый вид проверок: например для директорий в приложении, для модулей в src, для package-by-feature в модулях и тп, не стоит все пихать в один файл
 
@@ -424,33 +527,6 @@ deptrac:
 ```
 </details>
 
-#### Composer unused
-<details>
-
-<summary><strong>composer-unused.php</strong></summary>
-
-```php
-<?php
-
-declare(strict_types=1);
-
-use ComposerUnused\ComposerUnused\Configuration\Configuration;
-use ComposerUnused\ComposerUnused\Configuration\NamedFilter;
-
-return static fn(Configuration $config): Configuration => $config
-    ->addNamedFilter(NamedFilter::fromString('baldinof/roadrunner-bundle'))
-    ->addNamedFilter(NamedFilter::fromString('doctrine/doctrine-migrations-bundle'))
-    ->addNamedFilter(NamedFilter::fromString('phpstan/phpdoc-parser'))
-    ->addNamedFilter(NamedFilter::fromString('revolt/event-loop-adapter-react'))
-    ->addNamedFilter(NamedFilter::fromString('symfony/dotenv'))
-    ->addNamedFilter(NamedFilter::fromString('symfony/flex'))
-    ->addNamedFilter(NamedFilter::fromString('symfony/monolog-bundle'))
-    ->addNamedFilter(NamedFilter::fromString('symfony/runtime'))
-    ->addNamedFilter(NamedFilter::fromString('symfony/security-bundle'));
-```
-
-</details>
-
 #### KICS
 
 </details>
@@ -492,8 +568,6 @@ return static fn(Configuration $config): Configuration => $config
 
 для работы джобы надо создать access token с правами `read_api`
 перейти в репозиторий -> settings -> ci/cd -> variables, добавить переменную с ключом CHECK_COVERAGE_TOKEN, значением в виде токена. Стоит сделать ее masked,  чтоб не было видно в логах и убрать флаг protected variable, чтоб оно работало со всех веток
-
-всю логику джобы можно описать в script, но лучше использовать before_script and after_script для SRP
 
 https://gitlab.com/api/v4/projects/67384433/pipelines/1689770968/jobs
 code coverage сохраняется как один из параметров джобы, и мы можем его достать
@@ -619,8 +693,6 @@ code coverage сохраняется как один из параметров �
 пример аутпута 
 ![img_3.png](img_3.png)
 
-junit
-![img.png](img.png)
 #### Nuclei
 
 <details>

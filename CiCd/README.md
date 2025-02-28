@@ -310,6 +310,14 @@ phpunit:
 ```
 </details>
 
+я не буду использовать [infection](https://github.com/infection/infection), потому что предпочитаю писать функциональные тесты и не на каждый edgecase. если же у вас library / DDD project, использование мутационного тестирования сильно вырастает (как мне кажется)
+
+я не буду использовать bin/console lint:yaml потому что если yaml конфиги невалидные, приложение не подымется
+
+я не буду использовать [dotenv-linter](https://github.com/dotenv-linter/dotenv-linter?tab=readme-ov-file), пока не вижу много пользы
+
+однако вы можете добавлять эти инструменты в свой пайплайн
+
 #### Composer
 
 ```yaml
@@ -1025,9 +1033,8 @@ nuclei:
     TARGET_URL: https://your-app/
   before_script:
     - go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
-  script:
-    - echo "Target url" $TARGET_URL
     - curl -I $TARGET_URL || echo "Target is unreachable"
+  script:
     - nuclei -u $TARGET_URL -jsonl nuclei-report.jsonl || true
   artifacts:
     when: always

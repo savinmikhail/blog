@@ -448,6 +448,33 @@ return static fn(Configuration $config): Configuration => $config
 ```
 </details>
 
+#### DI lint
+чтобы проверить, что контейнер symfony компилируется корректно в prod режиме
+
+```yaml
+di_lint:
+   variables:
+      GIT_STRATEGY: none
+   stage: test
+   image: $DEV_IMAGE
+   script:
+      - bin/console cache:clear --env=prod
+      - bin/console lint:container --env=prod
+```
+
+#### Doctrine schema validate
+проверить корректность маппингов доктрины, без соединения с бд
+
+```yaml
+schema_validate:
+  variables:
+    GIT_STRATEGY: none
+  stage: test
+  image: $DEV_IMAGE
+  script:
+    - bin/console doctrine:schema:validate --skip-sync
+```
+
 #### Rector
 
 https://github.com/rectorphp/rector
@@ -484,87 +511,7 @@ return RectorConfig::configure()
 ```
 </details>
 
-#### Deptrack
-Создаем много конфигурационных файлов под каждый вид проверок: например для директорий в приложении, для модулей в src, для package-by-feature в модулях и тп, не стоит все пихать в один файл
-
-<details>
-
-<summary><strong>deptrac.directories.yaml</strong></summary>
-
-```yaml
-
-deptrac:
-    analyser:
-        types:
-            - class
-            - class_superglobal
-            - file
-            - function
-            - function_call
-            - function_superglobal
-            - use
-
-    paths:
-        - bin
-        - config
-        - migrations
-        - public
-        - src
-        - tests
-
-    layers:
-        - { name: bin,        collectors: [ { type: directory, value: ./bin/.* } ] }
-        - { name: migrations, collectors: [ { type: directory, value: ./migrations/.* } ] }
-        - { name: public,     collectors: [ { type: directory, value: ./public/.* } ] }
-        - { name: src,        collectors: [ { type: directory, value: ./src/.* } ] }
-        - { name: tests,      collectors: [ { type: directory, value: ./tests/.* } ] }
-
-    ruleset:
-        bin: [src]
-        migrations:
-        public: [src]
-        tests: [src]
-```
-</details>
-
-#### KICS
-
-</details>
-
-<details>
-
-<summary><strong>Пример violation</strong></summary>
-
-```json
-{
-    "id": "f1a0bb482c0f478d4b6592a51da84de5f42cb34b4e185a46baad7c622ffa96f4",
-    "category": "sast",
-    "name": "Missing User Instruction",
-    "description": "A user should be specified in the dockerfile, otherwise the image will run as root",
-    "cve": "kics_id:fd54f200-402c-4333-a5a4-36ef6709af2f:2:0",
-    "severity": "Critical",
-    "scanner": {
-        "id": "kics",
-        "name": "kics"
-    },
-    "location": {
-        "file": "Docker/Dockerfile",
-        "start_line": 2
-    },
-    "identifiers": [
-        {
-            "type": "kics_id",
-            "name": "Missing User Instruction",
-            "value": "fd54f200-402c-4333-a5a4-36ef6709af2f",
-            "url": "https://docs.docker.com/engine/reference/builder/#user"
-        }
-    ]
-}
-```
-
-</details>
-
-### Check coverage
+#### Check coverage
 
 для работы джобы надо создать access token с правами `read_api`
 перейти в репозиторий -> settings -> ci/cd -> variables, добавить переменную с ключом CHECK_COVERAGE_TOKEN, значением в виде токена. Стоит сделать ее masked,  чтоб не было видно в логах и убрать флаг protected variable, чтоб оно работало со всех веток
@@ -690,51 +637,196 @@ code coverage сохраняется как один из параметров �
  }
 ```
 
-пример аутпута 
+пример аутпута
 ![img_3.png](img_3.png)
 
-#### Nuclei
+#### Migration rollback
+
+```yaml
+migrations_rollback_test:
+  stage: test
+  image: $DEV_IMAGE
+  services:
+    - name: postgres:14
+      alias: postgres
+  variables:
+    APP_ENV: test
+    DATABASE_URL: "pgsql://postgres:postgres@postgres:5432/test_db"
+    POSTGRES_DB: test_db
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    GIT_STRATEGY: none
+  before_script:
+     - apt-get update && apt-get install -y postgresql-client
+     - until pg_isready -h postgres -p 5432 -U postgres; do sleep 1; done
+     - bin/console doctrine:database:create --if-not-exists --env=test
+     - bin/console doctrine:migrations:migrate --no-interaction --env=test
+  script:
+    - bin/console doctrine:migrations:migrate first --no-interaction --env=test
+```
+
+#### PHPMD
+
+```yaml
+phpmd:
+  stage: test
+  image: $DEV_IMAGE
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - vendor/bin/phpmd src json phpmd.xml --reportfile phpmd_result.json
+  artifacts:
+    when: always
+    paths:
+      - phpmd_result.json
+```
+
+#### Deptrack
+Создаем много конфигурационных файлов под каждый вид проверок: например для директорий в приложении, для модулей в src, для package-by-feature в модулях и тп, не стоит все пихать в один файл
 
 <details>
 
-<summary><strong>nuclei</strong></summary>
+<summary><strong>deptrac.directories.yaml</strong></summary>
+
+```yaml
+
+deptrac:
+    analyser:
+        types:
+            - class
+            - class_superglobal
+            - file
+            - function
+            - function_call
+            - function_superglobal
+            - use
+
+    paths:
+        - bin
+        - config
+        - migrations
+        - public
+        - src
+        - tests
+
+    layers:
+        - { name: bin,        collectors: [ { type: directory, value: ./bin/.* } ] }
+        - { name: migrations, collectors: [ { type: directory, value: ./migrations/.* } ] }
+        - { name: public,     collectors: [ { type: directory, value: ./public/.* } ] }
+        - { name: src,        collectors: [ { type: directory, value: ./src/.* } ] }
+        - { name: tests,      collectors: [ { type: directory, value: ./tests/.* } ] }
+
+    ruleset:
+        bin: [src]
+        migrations:
+        public: [src]
+        tests: [src]
+```
+</details>
+
+```yaml
+deptrac:
+  variables:
+    GIT_STRATEGY: none
+  stage: test
+  image: $DEV_IMAGE
+  script:
+    - vendor/bin/deptrac --config-file=deptrac.modules.yaml --cache-file=var/.deptrac.modules.cache
+    - vendor/bin/deptrac --config-file=deptrac.directories.yaml --cache-file=var/.deptrac.directories.cache
+```
+
+#### KICS
+
+```yaml
+kics-iac-scan:
+  stage: test
+  image:
+    name: checkmarx/kics:latest
+    entrypoint: [""]
+  script:
+    - kics scan --no-progress -p ${PWD} -o ${PWD} --report-formats json --output-name kics-results
+  artifacts:
+    when: always
+    name: kics-results.json
+    paths:
+      - kics-results.json
+```
+</details>
+
+<details>
+
+<summary><strong>Пример violation</strong></summary>
 
 ```json
 {
-  "info": {
-    "name": "PHPinfo Page - Detect",
-    "author": [
-      "pdteam",
-      "daffainfo",
-      "meme-lord",
-      "dhiyaneshdk",
-      "wabafet",
-      "mastercho"
-    ],
-    "tags": [
-      "config",
-      "exposure",
-      "phpinfo"
-    ],
-    "description": "PHPinfo page was detected. The output of the phpinfo() command can reveal sensitive and detailed PHP environment information.\n",
-    "severity": "low",
-    "metadata": {
-      "max-request": 25
+    "id": "f1a0bb482c0f478d4b6592a51da84de5f42cb34b4e185a46baad7c622ffa96f4",
+    "category": "sast",
+    "name": "Missing User Instruction",
+    "description": "A user should be specified in the dockerfile, otherwise the image will run as root",
+    "cve": "kics_id:fd54f200-402c-4333-a5a4-36ef6709af2f:2:0",
+    "severity": "Critical",
+    "scanner": {
+        "id": "kics",
+        "name": "kics"
     },
-    "classification": {
-      "cve-id": null,
-      "cwe-id": [
-        "cwe-200"
-      ]
+    "location": {
+        "file": "Docker/Dockerfile",
+        "start_line": 2
     },
-    "remediation": "Remove PHP Info pages from publicly accessible sites, or restrict access to authorized users only."
-  }
+    "identifiers": [
+        {
+            "type": "kics_id",
+            "name": "Missing User Instruction",
+            "value": "fd54f200-402c-4333-a5a4-36ef6709af2f",
+            "url": "https://docs.docker.com/engine/reference/builder/#user"
+        }
+    ]
 }
 ```
 
 </details>
 
 #### Trivy
+
+```yaml
+trivy_container_scan:
+  image:
+    name: docker.io/aquasec/trivy:latest
+    entrypoint: [""]
+  variables:
+    # No need to clone the repo, we exclusively work on artifacts. See
+    # https://docs.gitlab.com/ee/ci/runners/configure_runners.html#git-strategy
+    GIT_STRATEGY: none
+    TRIVY_USERNAME: "$CI_REGISTRY_USER"
+    TRIVY_PASSWORD: "$CI_REGISTRY_PASSWORD"
+    TRIVY_AUTH_URL: "$CI_REGISTRY"
+    TRIVY_NO_PROGRESS: "true"
+    TRIVY_CACHE_DIR: ".trivycache/"
+    FULL_IMAGE_NAME: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  script:
+    - trivy --version
+    # update vulnerabilities db
+    - time trivy image --download-db-only
+    # Builds report and puts it in the default workdir $CI_PROJECT_DIR, so `artifacts:` can take it from there
+    - time trivy image --exit-code 0 --format template --template "@/contrib/gitlab.tpl"
+        --output "$CI_PROJECT_DIR/gl-container-scanning-report.json" "$FULL_IMAGE_NAME"
+    # Prints full report
+    - time trivy image --exit-code 0 "$FULL_IMAGE_NAME"
+    # Fail on critical vulnerabilities
+    - time trivy image --exit-code 1 --severity CRITICAL "$FULL_IMAGE_NAME"
+  cache:
+    paths:
+      - .trivycache/
+  # Enables https://docs.gitlab.com/ee/user/application_security/container_scanning/ (Container Scanning report is available on GitLab EE Ultimate or GitLab.com Gold)
+  artifacts:
+    when: always
+    name: gl-container-scanning-report.json
+    paths:
+      - gl-container-scanning-report.json
+    reports:
+      container_scanning: gl-container-scanning-report.json
+  stage: test
+```
 
 <details>
 
@@ -829,6 +921,20 @@ code coverage сохраняется как один из параметров �
 
 #### Gitleaks
 
+```yaml
+gitleaks_secret_detection:
+  stage: test
+  image:
+    name: zricethezav/gitleaks:latest
+    entrypoint: [""]
+  script:
+    - gitleaks dir . --report-path gitleaks-report.json
+  artifacts:
+    when: always
+    paths:
+      - gitleaks-report.json
+```
+
 <details>
 
 <summary><strong>Gitleaks</strong></summary>
@@ -868,9 +974,85 @@ code coverage сохраняется как один из параметров �
 ```
 </details>
 
+
 ### Deploy
 
+Аналогично сборке приложения, имеем две джобы для деплоя, в целом одинаковых
+
+```yaml
+deploy_dev:
+  stage: deploy
+  when: manual
+  script:
+    - echo "Deploying the application..."
+#    здесь будет кастомная логика. в самом простом виде
+#     - ssh $HOST:$USER \
+#     && cd $PATH_TO_PROJECT \
+#     && git pull \
+#     && bin/console bin/console clear:cache \
+#     && bin/console doctrine:migration:migrate
+#  в более продвинутом варианте подменяем контейнер на сервере сбилженным image'м
+    - echo "Application successfully deployed."
+
+deploy_prod:
+  stage: deploy
+  when: manual
+  only:
+    - tags
+  script:
+    - echo "Deploying the application..."
+    #    здесь будет кастомная логика. в самом простом виде
+    #     - ssh $HOST:$USER \
+    #     && cd $PATH_TO_PROJECT \
+    #     && git pull \
+    #     && bin/console bin/console clear:cache \
+    #     && bin/console doctrine:migration:migrate
+    #  в более продвинутом варианте подменяем контейнер на сервере сбилженным image'м
+    - echo "Application successfully deployed."
+```
+
 ### DAST
+
+#### Nuclei
+
+<details>
+
+<summary><strong>nuclei</strong></summary>
+
+```json
+{
+  "info": {
+    "name": "PHPinfo Page - Detect",
+    "author": [
+      "pdteam",
+      "daffainfo",
+      "meme-lord",
+      "dhiyaneshdk",
+      "wabafet",
+      "mastercho"
+    ],
+    "tags": [
+      "config",
+      "exposure",
+      "phpinfo"
+    ],
+    "description": "PHPinfo page was detected. The output of the phpinfo() command can reveal sensitive and detailed PHP environment information.\n",
+    "severity": "low",
+    "metadata": {
+      "max-request": 25
+    },
+    "classification": {
+      "cve-id": null,
+      "cwe-id": [
+        "cwe-200"
+      ]
+    },
+    "remediation": "Remove PHP Info pages from publicly accessible sites, or restrict access to authorized users only."
+  }
+}
+```
+
+</details>
 
 ## Полный пример
 

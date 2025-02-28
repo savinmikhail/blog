@@ -1013,7 +1013,27 @@ deploy_prod:
 
 ### DAST
 
+
+
 #### Nuclei
+
+```yaml
+nuclei:
+  stage: DAST
+  image: golang:latest
+  variables:
+    TARGET_URL: https://your-app/
+  before_script:
+    - go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
+  script:
+    - echo "Target url" $TARGET_URL
+    - curl -I $TARGET_URL || echo "Target is unreachable"
+    - nuclei -u $TARGET_URL -jsonl nuclei-report.jsonl || true
+  artifacts:
+    when: always
+    paths:
+      - nuclei-report.jsonl
+```
 
 <details>
 

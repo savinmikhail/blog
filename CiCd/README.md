@@ -380,6 +380,30 @@ return static fn(Configuration $config): Configuration => $config
 
 </details>
 
+#### Composer outdated
+
+Если патчи и минорные версии довольно часто обновляются в проекте, то переход на мажорные версии случаются редко. 
+
+С этой целью мы можем написать вот такую джобу, которая запускатеся по [расписанию](https://docs.gitlab.com/ci/pipelines/schedules/), допустим раз в 2 недели
+
+С настройкой самой команды стоит поиграться, так как ваша компания может требовать нахождения на LTS версиях фреймворка например, тогда вы можете добавить `--ignore` флаг для пакетов symfony (или любых других где требуется LTS). 
+
+```yaml
+composer_outdated_check:
+  stage: test
+  image: composer:latest
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - composer outdated --strict --major-only --sort-by-age
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+```
+
+Пример violation
+
+![img_7.png](img_7.png)
+
 #### Psalm
 
 https://github.com/vimeo/psalm
@@ -1309,6 +1333,16 @@ composer:
       - php8.2 vendor/bin/composer-unused
       - composer audit
       - composer check-platform-reqs
+
+composer_outdated_check:
+   stage: test
+   image: composer:latest
+   variables:
+      GIT_STRATEGY: none
+   script:
+      - composer outdated --strict --major-only --sort-by-age
+   rules:
+      - if: '$CI_PIPELINE_SOURCE == "schedule"'
 
 psalm:
    variables:

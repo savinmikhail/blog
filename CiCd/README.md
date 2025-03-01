@@ -175,6 +175,14 @@ build_prod_image:
 
 ### Test
 
+я не буду использовать [infection](https://github.com/infection/infection), потому что предпочитаю писать функциональные тесты и не на каждый edgecase. если же у вас library / DDD project, использование мутационного тестирования сильно вырастает (как мне кажется)
+
+я не буду использовать bin/console lint:yaml потому что если yaml конфиги невалидные, приложение не подымется
+
+я не буду использовать [dotenv-linter](https://github.com/dotenv-linter/dotenv-linter?tab=readme-ov-file), пока не вижу много пользы
+
+однако вы можете добавлять эти инструменты в свой пайплайн
+
 #### PHP-CS-Fixer
 
 https://github.com/PHP-CS-Fixer/PHP-CS-Fixer
@@ -191,10 +199,11 @@ cs:
       - ./vendor/bin/php-cs-fixer -v --config=.php-cs-fixer.dist.php fix --dry-run --stop-on-violation --diff
 ```
 
-используем флаг `--dry-run`, чтобы в пайплайне у нас ничего не правилось, но просто находились ошибки. 
+Используем флаг `--dry-run`, чтобы в пайплайне у нас ничего не правилось, но просто находились ошибки. 
+
 `--stop-on-violation` нужен для оптимизации - после первой же найденной ошибки мы можем упасть, и не искать остальные
 
-пример конфига
+Пример конфига
 
 <details>
 
@@ -228,6 +237,8 @@ return $config;
 ```
 
 </details>
+
+Пример violation 
 
 ![img_4.png](img_4.png)
 
@@ -265,12 +276,14 @@ phpunit:
 ```
 
 флаг `--colors=never` нужен чтобы проще доставать регуляркой покрытие
+
 `--coverage-text` выводит результат выполнения в консоль
+
 `--do-not-cache-result` оптимизация
+
 `--log-junit phpunit-report.xml` - опционально, выводит репорт в UI гитлаба:
 
 ![img.png](img.png)
-
 
 пример конфига
 
@@ -309,14 +322,6 @@ phpunit:
 </phpunit>
 ```
 </details>
-
-я не буду использовать [infection](https://github.com/infection/infection), потому что предпочитаю писать функциональные тесты и не на каждый edgecase. если же у вас library / DDD project, использование мутационного тестирования сильно вырастает (как мне кажется)
-
-я не буду использовать bin/console lint:yaml потому что если yaml конфиги невалидные, приложение не подымется
-
-я не буду использовать [dotenv-linter](https://github.com/dotenv-linter/dotenv-linter?tab=readme-ov-file), пока не вижу много пользы
-
-однако вы можете добавлять эти инструменты в свой пайплайн
 
 #### Composer
 
@@ -376,6 +381,14 @@ return static fn(Configuration $config): Configuration => $config
 </details>
 
 #### Psalm
+
+https://github.com/vimeo/psalm
+
+Пример violations
+
+![img_5.png](img_5.png)
+
+Пример конфига
 
 <details>
 
@@ -457,7 +470,8 @@ return static fn(Configuration $config): Configuration => $config
 </details>
 
 #### DI lint
-чтобы проверить, что контейнер symfony компилируется корректно в prod режиме
+
+Нужно, чтобы проверить, что контейнер symfony компилируется корректно в prod режиме
 
 ```yaml
 di_lint:
@@ -471,7 +485,8 @@ di_lint:
 ```
 
 #### Doctrine schema validate
-проверить корректность маппингов доктрины, без соединения с бд
+
+Проверяет корректность маппингов доктрины, без соединения с бд
 
 ```yaml
 schema_validate:
@@ -486,6 +501,8 @@ schema_validate:
 #### Rector
 
 https://github.com/rectorphp/rector
+
+Пример конфига
 
 <details>
 
@@ -521,11 +538,22 @@ return RectorConfig::configure()
 
 #### Check coverage
 
-для работы джобы надо создать access token с правами `read_api`
-перейти в репозиторий -> settings -> ci/cd -> variables, добавить переменную с ключом CHECK_COVERAGE_TOKEN, значением в виде токена. Стоит сделать ее masked,  чтоб не было видно в логах и убрать флаг protected variable, чтоб оно работало со всех веток
+Здесь мы хотим запретить снижение покрытия тестами
 
-https://gitlab.com/api/v4/projects/67384433/pipelines/1689770968/jobs
-code coverage сохраняется как один из параметров джобы, и мы можем его достать
+Для работы джобы надо создать access token с правами `read_api`, выпустить его можно в профиле пользователя
+
+Далее надо добавить токен в переменные для пайплайна, для этого нужно перейти в репозиторий -> Settings -> CI/CD -> Variables, 
+добавить переменную с ключом `CHECK_COVERAGE_TOKEN` и значением в виде токена. 
+Стоит сделать ее `masked`,  чтоб не было видно в логах и убрать флаг `protected variable`, чтоб оно работало со всех веток
+
+`Code coverage` сохраняется как один из параметров джобы, и мы можем его достать. Для всех джоб кроме phpunit там будет null
+
+Вот по такому запросу https://gitlab.com/api/v4/projects/67384433/pipelines/1689770968/jobs получаем массив таких объектов:
+
+<details>
+
+<summary><strong>rector.php</strong></summary>
+
 ```json
 {
    "id": 9251826755,
@@ -644,11 +672,17 @@ code coverage сохраняется как один из параметров �
    "tag_list": []
  }
 ```
+</details>
 
-пример аутпута
+Мы таким образом вычленяем покрытие для текущего пайплайна и для последнего с `TARGET_BRANCH` - скорее всего `master`
+
+Пример violation
+
 ![img_3.png](img_3.png)
 
 #### Migration rollback
+
+В процессе разработки мы как правило только накатываем миграции, но не проверяем, что они могут откатываться. Однако если деплой пойдет не по плану, важно чтоб мы могли откатится. Поэтому существует такая джоба. 
 
 ```yaml
 migrations_rollback_test:
@@ -675,6 +709,8 @@ migrations_rollback_test:
 
 #### PHPMD
 
+https://github.com/phpmd/phpmd
+
 ```yaml
 phpmd:
   stage: test
@@ -689,8 +725,64 @@ phpmd:
       - phpmd_result.json
 ```
 
+Пример конфига
+
+<details>
+
+<summary><strong>phpmd.xml</strong></summary>
+
+```xml
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         name="RP PHPMD rule set"
+         xmlns="http://pmd.sf.net/ruleset/1.0.0"
+         xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0
+                     http://pmd.sf.net/ruleset_xml_schema.xsd"
+         xsi:noNamespaceSchemaLocation="
+                     http://pmd.sf.net/ruleset_xml_schema.xsd">
+    <description>*** rule set</description>
+    <rule ref="rulesets/cleancode.xml/DuplicatedArrayKey" />
+    <rule ref="rulesets/cleancode.xml/MissingImport" />
+    <rule ref="rulesets/cleancode.xml/UndefinedVariable" />
+    <rule ref="rulesets/cleancode.xml/ErrorControlOperator" />
+    <rule ref="rulesets/codesize.xml/ExcessiveMethodLength" />
+    <rule ref="rulesets/controversial.xml/Superglobals" />
+    <rule ref="rulesets/design.xml/ExitExpression" />
+    <rule ref="rulesets/design.xml/EvalExpression" />
+    <rule ref="rulesets/design.xml/GotoStatement" />
+    <rule ref="rulesets/design.xml/DevelopmentCodeFragment" />
+    <rule ref="rulesets/design.xml/EmptyCatchBlock" />
+    <rule ref="rulesets/design.xml/CountInLoopExpression" />
+    <rule ref="rulesets/naming.xml/ConstructorWithNameAsEnclosingClass" />
+    <rule ref="rulesets/naming.xml/ConstantNamingConventions" />
+    <rule ref="rulesets/naming.xml/BooleanGetMethodName" />
+    <rule ref="rulesets/unusedcode.xml/UnusedPrivateField" />
+    <rule ref="rulesets/unusedcode.xml/UnusedLocalVariable" />
+    <rule ref="rulesets/unusedcode.xml/UnusedPrivateMethod" />
+    <rule ref="rulesets/unusedcode.xml/UnusedFormalParameter" />
+</ruleset>
+```
+</details>
+
 #### Deptrack
-Создаем много конфигурационных файлов под каждый вид проверок: например для директорий в приложении, для модулей в src, для package-by-feature в модулях и тп, не стоит все пихать в один файл
+
+Этот инструмент проверяет архитектурные правила, которые вы задаете. Например, что миграции не должны зависеть от кода (чтоб обеспечить их иммутабельность)
+
+Создаем много конфигурационных файлов под каждый вид проверок: например для директорий в приложении, для модулей в src, 
+для package-by-feature в модулях и тп, не стоит все пихать в один файл
+
+```yaml
+deptrac:
+  variables:
+    GIT_STRATEGY: none
+  stage: test
+  image: $DEV_IMAGE
+  script:
+    - vendor/bin/deptrac --config-file=deptrac.modules.yaml --cache-file=var/.deptrac.modules.cache
+    - vendor/bin/deptrac --config-file=deptrac.directories.yaml --cache-file=var/.deptrac.directories.cache
+```
+
+Пример конфига
 
 <details>
 
@@ -732,18 +824,21 @@ deptrac:
 ```
 </details>
 
-```yaml
-deptrac:
-  variables:
-    GIT_STRATEGY: none
-  stage: test
-  image: $DEV_IMAGE
-  script:
-    - vendor/bin/deptrac --config-file=deptrac.modules.yaml --cache-file=var/.deptrac.modules.cache
-    - vendor/bin/deptrac --config-file=deptrac.directories.yaml --cache-file=var/.deptrac.directories.cache
-```
+Пример violation
+
+![img_6.png](img_6.png)
 
 #### KICS
+
+https://github.com/Checkmarx/kics
+
+Расшифрую аббревиатуры:
+
+KICS - Keeping Infrastructure as Code Secure
+
+IAC - Infrastructure as a code.
+
+Эта джоба ответственна за нахождение ваших docker/ansible/terraform/k8s файлов и проверку их на уязвимости, bad practices и просто ошибки
 
 ```yaml
 kics-iac-scan:
@@ -759,7 +854,6 @@ kics-iac-scan:
     paths:
       - kics-results.json
 ```
-</details>
 
 <details>
 
@@ -795,6 +889,10 @@ kics-iac-scan:
 </details>
 
 #### Trivy
+
+https://github.com/aquasecurity/trivy
+
+Сканирует ваш docker image и находит уязвимости. По моему опыту это как правило уязвимости в установленных библиотеках
 
 ```yaml
 trivy_container_scan:
@@ -838,7 +936,7 @@ trivy_container_scan:
 
 <details>
 
-<summary><strong>Trivy</strong></summary>
+<summary><strong>Пример violation</strong></summary>
 
 ```json
 {
@@ -929,6 +1027,10 @@ trivy_container_scan:
 
 #### Gitleaks
 
+https://github.com/gitleaks/gitleaks?tab=readme-ov-file#docker
+
+Следит за тем, чтоб ни в истории коммитов, ни в самих файлах не было ключей, паролей, токенов и тому подобного.
+
 ```yaml
 gitleaks_secret_detection:
   stage: test
@@ -945,7 +1047,7 @@ gitleaks_secret_detection:
 
 <details>
 
-<summary><strong>Gitleaks</strong></summary>
+<summary><strong>Пример violation</strong></summary>
 
 ```json
 {
@@ -981,7 +1083,6 @@ gitleaks_secret_detection:
 }
 ```
 </details>
-
 
 ### Deploy
 
@@ -1021,9 +1122,11 @@ deploy_prod:
 
 ### DAST
 
-
+DAST - Dynamic Application Security Testing - на этом этапе инструменты будут сканировать ваше задеплоенное приложение на предмет раскрытых конфигов, sql injections, незащищенного соединения, портов и тп
 
 #### Nuclei
+
+https://github.com/projectdiscovery/nuclei
 
 ```yaml
 nuclei:
@@ -1044,7 +1147,7 @@ nuclei:
 
 <details>
 
-<summary><strong>nuclei</strong></summary>
+<summary><strong>Пример violation</strong></summary>
 
 ```json
 {
@@ -1089,289 +1192,383 @@ nuclei:
 
 ```yaml
 stages:
-  - build
-  - test
-  - deploy
-  - DAST
+   - build
+   - test
+   - deploy
+   - DAST
 
 variables:
-  CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-  DOCKER_IMAGE: $CONTAINER_TEST_IMAGE
+   DEV_IMAGE: $CI_REGISTRY_IMAGE:dev
+   PROD_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
 
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - vendor/
+build_dev_dependencies:
+   stage: build
+   image: composer:latest
+   script:
+      - composer install --no-interaction
+   artifacts:
+      paths:
+         - vendor/
+         - .
 
-build:
-  stage: build
-  image: composer:latest
-  script:
-    - composer install --prefer-dist --no-interaction
-  artifacts:
-    paths:
-      - vendor/
+build_dev_image:
+   services:
+      - name: docker:dind
+        alias: dind
+   image: docker:20.10.16
+   stage: build
+   variables:
+      GIT_STRATEGY: none
+   before_script:
+      - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+   script:
+      - docker build -t $DEV_IMAGE ./.docker/dev
+      - docker push $DEV_IMAGE
+   needs: [build_dev_dependencies]
 
-build_image:
-  services:
-    - name: docker:dind
-      alias: dind
-  image: docker:20.10.16
-  stage: build
-  script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker pull $CI_REGISTRY_IMAGE:latest || true
-    - docker build --tag $CONTAINER_TEST_IMAGE --tag $CI_REGISTRY_IMAGE:latest ./Docker
-    - docker push $CONTAINER_TEST_IMAGE
-    - docker push $CI_REGISTRY_IMAGE:latest
-  needs: [build]
-  rules:
-    - changes:
-        - Docker/**/*
+build_prod_dependencies:
+   stage: build
+   image: composer:latest
+   variables:
+      APP_ENV: prod
+      APP_DEBUG: 0
+   script:
+      - composer install --no-dev --optimize-autoloader --no-interaction
+      - composer dump-env prod
+   artifacts:
+      paths:
+         - vendor/
+         - .
+   only:
+      - tags
+
+build_prod_image:
+   services:
+      - name: docker:dind
+        alias: dind
+   image: docker:20.10.16
+   stage: build
+   variables:
+      GIT_STRATEGY: none
+   before_script:
+      - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+   script:
+      - docker build -t $PROD_IMAGE ./.docker/prod
+      - docker push $PROD_IMAGE
+      - docker push $CI_REGISTRY_IMAGE:latest
+   needs: [build_prod_dependencies]
+   only:
+      - tags
 
 cs:
-  stage: test
-  image: php:8.2
-  script:
-    - ./vendor/bin/php-cs-fixer fix src --dry-run --stop-on-violation # https://github.com/PHP-CS-Fixer/PHP-CS-Fixer
+   stage: test
+   image: $DEV_IMAGE
+   variables:
+      GIT_STRATEGY: none
+   script:
+      - ./vendor/bin/php-cs-fixer -v --config=.php-cs-fixer.dist.php fix --dry-run --stop-on-violation --diff
 
 phpunit:
-  stage: test
-  image: $DOCKER_IMAGE
-  services:
-    - name: postgres:14
-      alias: postgres
-  variables:
-    APP_ENV: test
-    DATABASE_URL: "pgsql://postgres:postgres@postgres:5432/test_db"
-    POSTGRES_DB: test_db
-    POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: postgres
-  script:
-    - apt-get update && apt-get install -y postgresql-client
-    - until pg_isready -h postgres -p 5432 -U postgres; do sleep 1; done
-    - bin/console doctrine:database:create --if-not-exists --env=test
-    - bin/console doctrine:migrations:migrate --no-interaction --env=test
-    - XDEBUG_MODE=coverage php ./vendor/bin/phpunit --coverage-text --coverage-cobertura=coverage.cobertura.xml --coverage-clover=coverage.xml
-  coverage: '/^\s*Lines:\s*\d+.\d+\%/'
-  artifacts:
-    when: always
-    paths:
-      - coverage.cobertura.xml
-      - coverage.xml
-
-check_coverage:
-  image: alpine:latest
-  stage: test
-  needs: [phpunit]
-  variables:
-    JOB_NAME: phpunit
-    TARGET_BRANCH: master
-  before_script:
-    - apk add --update --no-cache curl jq
-  rules:
-    - if: '$CI_COMMIT_BRANCH != $TARGET_BRANCH'  # Only run on MRs, not on the main branch
-  script:
-    # Get the latest successful pipeline ID from the target branch
-    - TARGET_PIPELINE_ID=$(curl -s "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines?ref=${TARGET_BRANCH}&status=success&private_token=${PRIVATE_TOKEN}" | jq ".[0].id")
-
-    # Fetch the coverage percentage from the target branch's last successful pipeline
-    - TARGET_COVERAGE=$(curl -s "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines/${TARGET_PIPELINE_ID}/jobs?private_token=${PRIVATE_TOKEN}" | jq --arg JOB_NAME "$JOB_NAME" '.[] | select(.name==$JOB_NAME) | .coverage' | tr -d '"')
-
-    # Fetch the current coverage from this pipeline
-    - CURRENT_COVERAGE=$(curl -s "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines/${CI_PIPELINE_ID}/jobs?private_token=${PRIVATE_TOKEN}" | jq --arg JOB_NAME "$JOB_NAME" '.[] | select(.name==$JOB_NAME) | .coverage' | tr -d '"')
-
-    # Validate if coverage values are available
-    - |
-      if [ -z "$TARGET_COVERAGE" ]; then 
-        echo "No previous coverage data found. Skipping check."; 
-        exit 0;
-      fi
-
-    - |
-      if [ -z "$CURRENT_COVERAGE" ]; then 
-        echo "Failed to retrieve current coverage data."; 
-        exit 1;
-      fi
-
-    # Convert to numeric and compare
-    - |
-      TARGET_COVERAGE=$(echo "$TARGET_COVERAGE" | awk '{print int($1)}')
-      CURRENT_COVERAGE=$(echo "$CURRENT_COVERAGE" | awk '{print int($1)}')
-
-      if [ "$CURRENT_COVERAGE" -lt "$TARGET_COVERAGE" ]; then 
-        echo "Coverage decreased from ${TARGET_COVERAGE}% to ${CURRENT_COVERAGE}%! Merge request blocked.";
-        exit 1;
-      else 
-        echo "Coverage check passed: ${CURRENT_COVERAGE}% (previous: ${TARGET_COVERAGE}%)";
-      fi
-
-phpmd:
-  stage: test
-  image: php:8.2
-  script:
-    - vendor/bin/phpmd src json phpmd.xml --reportfile phpmd_result.json
-  artifacts:
-    when: always
-    paths:
-      - phpmd_result.json
-
-migrations_rollback_test:
-  stage: test
-  image: $DOCKER_IMAGE
-  services:
-    - name: postgres:14
-      alias: postgres
-  variables:
-    APP_ENV: test
-    DATABASE_URL: "pgsql://postgres:postgres@postgres:5432/test_db"
-    POSTGRES_DB: test_db
-    POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: postgres
-  script:
-    - apt-get update && apt-get install -y postgresql-client
-    - until pg_isready -h postgres -p 5432 -U postgres; do sleep 1; done
-    - bin/console doctrine:database:create --if-not-exists --env=test
-    - bin/console doctrine:migrations:migrate --no-interaction --env=test
-    - bin/console doctrine:migrations:migrate first --no-interaction --env=test
-    - bin/console doctrine:migrations:migrate --no-interaction --env=test
+   stage: test
+   image: $DEV_IMAGE
+   services:
+      - name: postgres:14
+        alias: postgres
+   variables:
+      APP_ENV: test
+      DATABASE_URL: "pgsql://postgres:postgres@postgres:5432/test_db"
+      POSTGRES_DB: test_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      GIT_STRATEGY: none
+   before_script:
+      - apt-get update && apt-get install -y postgresql-client
+      - until pg_isready -h postgres -p 5432 -U postgres; do sleep 1; done
+      - bin/console doctrine:database:create --if-not-exists
+      - bin/console doctrine:migrations:migrate --no-interaction
+   script:
+      - XDEBUG_MODE=coverage php ./vendor/bin/phpunit --colors=never --coverage-text --coverage-cobertura=coverage.cobertura.xml --log-junit phpunit-report.xml --do-not-cache-result
+   coverage: '/^\s*Lines:\s*\d+.\d+\%/'
+   artifacts:
+      when: always
+      reports:
+         junit: phpunit-report.xml
+         coverage_report:
+            coverage_format: cobertura
+            path: coverage.cobertura.xml
 
 composer:
-  stage: test
-  image: composer:latest
-  script:
-    - composer normalize --diff --dry-run # https://github.com/ergebnis/composer-normalize
-    - composer validate # https://getcomposer.org/doc/03-cli.md#validate
-    - vendor/bin/composer-require-checker check --config-file=composer-require-checker.json # https://github.com/maglnet/ComposerRequireChecker
-    - php8.2 vendor/bin/composer-unused # https://github.com/composer-unused/composer-unused
-    - composer audit # https://getcomposer.org/doc/03-cli.md#audit
+   variables:
+      GIT_STRATEGY: none
+   stage: test
+   image: $DEV_IMAGE
+   script:
+      - composer normalize --diff --dry-run
+      - composer validate
+      - vendor/bin/composer-require-checker check --config-file=composer-require-checker.json
+      - php8.2 vendor/bin/composer-unused
+      - composer audit
+      - composer check-platform-reqs
 
-di: # чтобы проверить, что контейнер компилируется корректно в прод режиме
-  stage: test
-  image: php:8.2
-  script:
-    - bin/console cache:clear --env=prod
-    - bin/console lint:container --env=prod
+psalm:
+   variables:
+      GIT_STRATEGY: none
+   stage: test
+   image: $DEV_IMAGE
+   script:
+      - vendor/bin/psalm
 
-schema-validate: # проверить корректность маппингов доктрины, без соединения с бд
-  stage: test
-  image: php:8.2
-  script:
-    - bin/console doctrine:schema:validate --skip-sync
+di_lint: # чтобы проверить, что контейнер компилируется корректно в прод режиме
+   variables:
+      GIT_STRATEGY: none
+   stage: test
+   image: $DEV_IMAGE
+   script:
+      - bin/console cache:clear --env=prod
+      - bin/console lint:container --env=prod
+
+schema_validate:
+   variables:
+      GIT_STRATEGY: none
+   stage: test
+   image: $DEV_IMAGE
+   script:
+      - bin/console doctrine:schema:validate --skip-sync
 
 rector:
-  stage: test
-  image: php:8.2
-  script:
-    - vendor/rector/rector/bin/rector --dry-run
+   variables:
+      GIT_STRATEGY: none
+   stage: test
+   image: $DEV_IMAGE
+   script:
+      - vendor/rector/rector/bin/rector --dry-run
 
-deptrac: # валидация архитектурных правил
-  stage: test
-  image: php:8.2
-  script:
-    - vendor/bin/deptrac --config-file=deptrac.modules.yaml --cache-file=var/.deptrac.modules.cache
-    - vendor/bin/deptrac --config-file=deptrac.directories.yaml --cache-file=var/.deptrac.directories.cache
+check_coverage:
+   image: alpine:latest # you should use PAT cuz JOB_TOKEN doesnt have sufficient permissions
+   stage: test
+   needs: [phpunit] # why use before_script and after_script?
+   variables:
+      JOB_NAME: phpunit
+      TARGET_BRANCH: master
+      GIT_STRATEGY: none
+   before_script:
+      - apk add --update --no-cache curl jq
+   rules:
+      - if: '$CI_COMMIT_BRANCH != $TARGET_BRANCH'
+   script:
+      - |
+         # Get latest pipeline ID from the target branch using the PAT
+         TARGET_PIPELINE_JSON=$(curl -s --header "PRIVATE-TOKEN: $CHECK_COVERAGE_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines?ref=${TARGET_BRANCH}") #todo add &status=success
+         TARGET_PIPELINE_ID=$(echo "$TARGET_PIPELINE_JSON" | jq -r '.[0].id' 2>/dev/null)
 
-psalm: # проверка типов (и не только)
-  stage: test
-  image: php:8.2
-  script:
-    - vendor/bin/psalm
+      - |
+         # Handle missing pipeline data
+         if [ -z "$TARGET_PIPELINE_ID" ] || [ "$TARGET_PIPELINE_ID" = "null" ]; then
+           echo "No previous coverage data found. Skipping check.";
+           exit 0;
+         fi
+
+      - |
+         # Fetch coverage from the target branch's last successful pipeline
+         TARGET_JOBS_JSON=$(curl -s --header "PRIVATE-TOKEN: $CHECK_COVERAGE_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines/${TARGET_PIPELINE_ID}/jobs")
+         TARGET_COVERAGE=$(echo "$TARGET_JOBS_JSON" | jq --arg JOB_NAME "$JOB_NAME" '.[] | select(.name==$JOB_NAME) | .coverage' | tr -d '"')
+         echo "target coverage: $TARGET_COVERAGE"
+
+      - |
+         # Fetch current coverage from this pipeline
+         CURRENT_JOBS_JSON=$(curl -s --header "PRIVATE-TOKEN: $CHECK_COVERAGE_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines/${CI_PIPELINE_ID}/jobs")
+         CURRENT_COVERAGE=$(echo "$CURRENT_JOBS_JSON" | jq --arg JOB_NAME "$JOB_NAME" '.[] | select(.name==$JOB_NAME) | .coverage' | tr -d '"')
+         echo "current coverage: $CURRENT_COVERAGE" 
+
+      # Validate if coverage values are available
+      - |
+         if [ -z "$TARGET_COVERAGE" ]; then 
+           echo "No previous coverage data found. Skipping check."; 
+           exit 0;
+         fi
+
+      - |
+         if [ -z "$CURRENT_COVERAGE" ]; then 
+           echo "Failed to retrieve current coverage data."; 
+           exit 1;
+         fi
+
+      - |
+         # Convert to numeric but preserve decimals
+         TARGET_COVERAGE_INT=$(echo "$TARGET_COVERAGE" | awk '{print int($1)}')
+         CURRENT_COVERAGE_INT=$(echo "$CURRENT_COVERAGE" | awk '{print int($1)}')
+
+         # Use bc for floating point comparison (will keep decimal precision)
+         TARGET_COVERAGE_FLOAT=$(echo "$TARGET_COVERAGE" | sed 's/%//')
+         CURRENT_COVERAGE_FLOAT=$(echo "$CURRENT_COVERAGE" | sed 's/%//')
+
+         # Compare with decimals if both values are below 1%
+         if (( $(echo "$TARGET_COVERAGE_FLOAT < 1" | bc -l) )) && (( $(echo "$CURRENT_COVERAGE_FLOAT < 1" | bc -l) )); then
+           if (( $(echo "$CURRENT_COVERAGE_FLOAT < $TARGET_COVERAGE_FLOAT" | bc -l) )); then
+             echo "Coverage decreased from ${TARGET_COVERAGE}% to ${CURRENT_COVERAGE}%! Merge request blocked.";
+             exit 1;
+           else 
+             echo "Coverage check passed: ${CURRENT_COVERAGE}% (previous: ${TARGET_COVERAGE}%)";
+           fi
+         else
+           # Use integer comparison for values >= 1%
+           if [ "$CURRENT_COVERAGE_INT" -lt "$TARGET_COVERAGE_INT" ]; then 
+             echo "Coverage decreased from ${TARGET_COVERAGE}% to ${CURRENT_COVERAGE}%! Merge request blocked.";
+             exit 1;
+           else 
+             echo "Coverage check passed: ${CURRENT_COVERAGE}% (previous: ${TARGET_COVERAGE}%)";
+           fi
+         fi
+
+migrations_rollback_test:
+   stage: test
+   image: $DEV_IMAGE
+   services:
+      - name: postgres:14
+        alias: postgres
+   variables:
+      APP_ENV: test
+      DATABASE_URL: "pgsql://postgres:postgres@postgres:5432/test_db"
+      POSTGRES_DB: test_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      GIT_STRATEGY: none
+   before_script:
+      - apt-get update && apt-get install -y postgresql-client
+      - until pg_isready -h postgres -p 5432 -U postgres; do sleep 1; done
+      - bin/console doctrine:database:create --if-not-exists --env=test
+      - bin/console doctrine:migrations:migrate --no-interaction --env=test
+   script:
+      - bin/console doctrine:migrations:migrate first --no-interaction --env=test
+
+phpmd:
+   stage: test
+   image: $DEV_IMAGE
+   variables:
+      GIT_STRATEGY: none
+   script:
+      - vendor/bin/phpmd src json phpmd.xml --reportfile phpmd_result.json
+   artifacts:
+      when: always
+      paths:
+         - phpmd_result.json
+
+deptrac:
+   variables:
+      GIT_STRATEGY: none
+   stage: test
+   image: $DEV_IMAGE
+   script:
+      - vendor/bin/deptrac --config-file=deptrac.modules.yaml --cache-file=var/.deptrac.modules.cache
+      - vendor/bin/deptrac --config-file=deptrac.directories.yaml --cache-file=var/.deptrac.directories.cache
+
+kics-iac-scan:
+   stage: test
+   image:
+      name: checkmarx/kics:latest
+      entrypoint: [""]
+   script:
+      - kics scan --no-progress -p ${PWD} -o ${PWD} --report-formats json --output-name kics-results
+   artifacts:
+      when: always
+      name: kics-results.json
+      paths:
+         - kics-results.json
 
 trivy_container_scan:
-  image:
-    name: docker.io/aquasec/trivy:latest
-    entrypoint: [""]
-  variables:
-    # No need to clone the repo, we exclusively work on artifacts. See
-    # https://docs.gitlab.com/ee/ci/runners/configure_runners.html#git-strategy
-    GIT_STRATEGY: none
-    TRIVY_USERNAME: "$CI_REGISTRY_USER"
-    TRIVY_PASSWORD: "$CI_REGISTRY_PASSWORD"
-    TRIVY_AUTH_URL: "$CI_REGISTRY"
-    TRIVY_NO_PROGRESS: "true"
-    TRIVY_CACHE_DIR: ".trivycache/"
-    FULL_IMAGE_NAME: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-  script:
-    - trivy --version
-    # update vulnerabilities db
-    - time trivy image --download-db-only
-    # Builds report and puts it in the default workdir $CI_PROJECT_DIR, so `artifacts:` can take it from there
-    - time trivy image --exit-code 0 --format template --template "@/contrib/gitlab.tpl"
-      --output "$CI_PROJECT_DIR/gl-container-scanning-report.json" "$FULL_IMAGE_NAME"
-    # Prints full report
-    - time trivy image --exit-code 0 "$FULL_IMAGE_NAME"
-    # Fail on critical vulnerabilities
-    - time trivy image --exit-code 1 --severity CRITICAL "$FULL_IMAGE_NAME"
-  cache:
-    paths:
-      - .trivycache/
-  # Enables https://docs.gitlab.com/ee/user/application_security/container_scanning/ (Container Scanning report is available on GitLab EE Ultimate or GitLab.com Gold)
-  artifacts:
-    when: always
-    name: gl-container-scanning-report.json
-    paths:
-      - gl-container-scanning-report.json
-    reports:
-      container_scanning: gl-container-scanning-report.json
-  stage: test
-
-kics-ioc-scan:
-  stage: test
-  image:
-    name: checkmarx/kics:latest
-    entrypoint: [""]
-  script:
-    - kics scan --no-progress -p ${PWD} -o ${PWD} --report-formats json --output-name kics-results
-  artifacts:
-    when: always
-    name: kics-results.json
-    paths:
-      - kics-results.json
+   image:
+      name: docker.io/aquasec/trivy:latest
+      entrypoint: [""]
+   variables:
+      # No need to clone the repo, we exclusively work on artifacts. See
+      # https://docs.gitlab.com/ee/ci/runners/configure_runners.html#git-strategy
+      GIT_STRATEGY: none
+      TRIVY_USERNAME: "$CI_REGISTRY_USER"
+      TRIVY_PASSWORD: "$CI_REGISTRY_PASSWORD"
+      TRIVY_AUTH_URL: "$CI_REGISTRY"
+      TRIVY_NO_PROGRESS: "true"
+      TRIVY_CACHE_DIR: ".trivycache/"
+      FULL_IMAGE_NAME: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+   script:
+      - trivy --version
+      # update vulnerabilities db
+      - time trivy image --download-db-only
+      # Builds report and puts it in the default workdir $CI_PROJECT_DIR, so `artifacts:` can take it from there
+      - time trivy image --exit-code 0 --format template --template "@/contrib/gitlab.tpl"
+         --output "$CI_PROJECT_DIR/gl-container-scanning-report.json" "$FULL_IMAGE_NAME"
+      # Prints full report
+      - time trivy image --exit-code 0 "$FULL_IMAGE_NAME"
+      # Fail on critical vulnerabilities
+      - time trivy image --exit-code 1 --severity CRITICAL "$FULL_IMAGE_NAME"
+   cache:
+      paths:
+         - .trivycache/
+   # Enables https://docs.gitlab.com/ee/user/application_security/container_scanning/ (Container Scanning report is available on GitLab EE Ultimate or GitLab.com Gold)
+   artifacts:
+      when: always
+      name: gl-container-scanning-report.json
+      paths:
+         - gl-container-scanning-report.json
+      reports:
+         container_scanning: gl-container-scanning-report.json
+   stage: test
 
 gitleaks_secret_detection:
-  stage: test
-  image:
-    name: zricethezav/gitleaks:latest
-    entrypoint: [""]
-  script:
-    - gitleaks dir . --report-path gitleaks-report.json
-  artifacts:
-    when: always
-    paths:
-      - gitleaks-report.json
+   stage: test
+   image:
+      name: zricethezav/gitleaks:latest
+      entrypoint: [""]
+   script:
+      - gitleaks dir . --report-path gitleaks-report.json
+   artifacts:
+      when: always
+      paths:
+         - gitleaks-report.json
 
-deploy: # автоматическая доставка изменений на сервер (dev/stage/prod - для каждой будет своя джоба)
-  stage: deploy
-  when: manual
-  only:
-    - master   # или main/develop/release.x.x.x
-  script:
-    - echo "Deploying the application..."
-    #    здесь будет кастомная логика. в самом простом виде
-    #     - ssh $HOST:$USER \
-    #     && cd $PATH_TO_PROJECT \
-    #     && git clone $LINK \
-    #     && bin/console bin/console clear:cache \
-    #     && bin/console doctrine:migration:migrate
-    #  в более продвинутом варианте подменяем контейнер на сервере сбилженным image'м
-    - echo "Application successfully deployed."
+deploy_dev:
+   stage: deploy
+   when: manual
+   script:
+      - echo "Deploying the application..."
+      #    здесь будет кастомная логика. в самом простом виде
+      #     - ssh $HOST:$USER \
+      #     && cd $PATH_TO_PROJECT \
+      #     && git pull \
+      #     && bin/console bin/console clear:cache \
+      #     && bin/console doctrine:migration:migrate
+      #  в более продвинутом варианте подменяем контейнер на сервере сбилженным image'м
+      - echo "Application successfully deployed."
 
-dast_nuclei:
-  stage: DAST
-  image: golang:latest
-  variables:
-    TARGET_URL: https://your-app/
-  before_script:
-    - go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
-  script:
-    - echo "Target url" $TARGET_URL
-    - curl -I $TARGET_URL || echo "Target is unreachable"
-    - nuclei -u $TARGET_URL -jsonl nuclei-report.jsonl || true
-  artifacts:
-    when: always
-    paths:
-      - nuclei-report.jsonl
+deploy_prod:
+   stage: deploy
+   when: manual
+   only:
+      - tags
+   script:
+      - echo "Deploying the application..."
+      #    здесь будет кастомная логика. в самом простом виде
+      #     - ssh $HOST:$USER \
+      #     && cd $PATH_TO_PROJECT \
+      #     && git pull \
+      #     && bin/console bin/console clear:cache \
+      #     && bin/console doctrine:migration:migrate
+      #  в более продвинутом варианте подменяем контейнер на сервере сбилженным image'м
+      - echo "Application successfully deployed."
+
+nuclei:
+   stage: DAST
+   image: golang:latest
+   variables:
+      TARGET_URL: https://your-app/
+   before_script:
+      - go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
+      - curl -I $TARGET_URL || echo "Target is unreachable"
+   script:
+      - nuclei -u $TARGET_URL -jsonl nuclei-report.jsonl || true
+   artifacts:
+      when: always
+      paths:
+         - nuclei-report.jsonl
 
 ```
 </details>
@@ -1389,4 +1586,7 @@ dast_nuclei:
 
 https://dev.to/muhamadhhassan/adding-phpunit-test-log-and-coverage-to-gitlab-cicd-33b5
 https://docs.gitlab.com/ci/testing/unit_test_reports/
-объяснить отсутсвие инструментов infection, yaml lint. добавить чек обновлений для композера раз в 2 недели. добавить comments-density to avoid tech debt
+
+добавить чек обновлений для композера раз в 2 недели. 
+
+добавить comments-density to avoid tech debt

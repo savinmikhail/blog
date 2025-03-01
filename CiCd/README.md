@@ -2,6 +2,10 @@
 
 ![img_1.png](img_1.png)
 
+В этом лонгриде я расскажу немного теории о CI/CD в целом, в основном это будут практические примеры и советы, 
+в первую очередь полезные для PHP backend developers, однако некоторые инструменты подходят и для других языков, 
+и вы можете уловить overall idea как писать пайплайны
+
 ## Содержание
 1. [Почему CI/CD полезен и для бизнеса и для разработки](#почему-cicd-полезен-и-для-бизнеса-и-для-разработки)
 2. [Этапы пайплайна](#этапы-пайплайна)
@@ -50,7 +54,9 @@ CI/CD расшифровывается как Continuous Integration / Continuou
 
 ![img_2.png](img_2.png)
 
-Я расположу их в порядке легкости и важности внедрения в проект (на мой субъективный взгляд)
+Я расположу их в порядке важности внедрения в проект (на мой субъективный взгляд)
+
+Для обеспечения безопасности (DevSecOps) используются джобы с Composer, Kics, Trivy, Gitleaks, Nuclei
 
 Есть [готовые шаблоны](https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Security/DAST-API.gitlab-ci.yml) для DAST jobs приспособлены для Ultimate подписки, поэтому переписаны
 
@@ -63,10 +69,6 @@ CI/CD расшифровывается как Continuous Integration / Continuou
 Каждый эта содержит набор задач (jobs), каждая задача может запускать несколько команд
 
 GitLab Runner [автоматически](https://docs.gitlab.com/ci/runners/configure_runners/#git-strategy) клонирует ваш репозиторий в контейнер с джобой прежде чем выполнять указанный script
-
-Приведу здесь используемые мной конфиги для ряда job, чтобы было проще вам взять и использовать пайплайн. Конечно стоит изучить самостоятельно особенности каждого инструмента
-
-Приведу здесь примеры violations, которые репортуют инструменты, чтобы у вас сложилось представление, какой инструмент какую пользу может принести
 
 Создадим файл `.gitlab-ci.yaml`
 
@@ -175,19 +177,16 @@ build_prod_image:
 
 ### Test
 
-я не буду использовать [infection](https://github.com/infection/infection), потому что предпочитаю писать функциональные тесты и не на каждый edgecase. если же у вас library / DDD project, использование мутационного тестирования сильно вырастает (как мне кажется)
-
-я не буду использовать bin/console lint:yaml потому что если yaml конфиги невалидные, приложение не подымется
-
-я не буду использовать [dotenv-linter](https://github.com/dotenv-linter/dotenv-linter?tab=readme-ov-file), пока не вижу много пользы
-
-однако вы можете добавлять эти инструменты в свой пайплайн
+Дисклеймер:
+- я не буду использовать [infection](https://github.com/infection/infection), потому что предпочитаю писать функциональные тесты на целые эндпойнты и не на каждый edgecase. если же у вас library / DDD project, использование мутационного тестирования сильно вырастает (как мне кажется)
+- я не буду использовать линтеры для конфигов (например [dotenv-linter](https://github.com/dotenv-linter/dotenv-linter?tab=readme-ov-file)), потому что пока не вижу много пользы
 
 #### PHP-CS-Fixer
 
 https://github.com/PHP-CS-Fixer/PHP-CS-Fixer
 
-Это линтер. Замечательно то, что он правит все найденные несоответствия конфигу автоматически, поэтому самый легкий для внедрения, в то же время очень важный, так как больше никогда вам не придется думать об оформлении кода
+Это линтер. Замечательно то, что он правит все найденные несоответствия конфигу автоматически, поэтому самый легкий для внедрения, 
+в то же время очень важный, так как больше никогда вам не придется думать об оформлении кода
 
 ```yaml
 cs:
@@ -380,30 +379,6 @@ return static fn(Configuration $config): Configuration => $config
 
 </details>
 
-#### Composer outdated
-
-Если патчи и минорные версии довольно часто обновляются в проекте, то переход на мажорные версии случаются редко. 
-
-С этой целью мы можем написать вот такую джобу, которая запускатеся по [расписанию](https://docs.gitlab.com/ci/pipelines/schedules/), допустим раз в 2 недели
-
-С настройкой самой команды стоит поиграться, так как ваша компания может требовать нахождения на LTS версиях фреймворка например, тогда вы можете добавить `--ignore` флаг для пакетов symfony (или любых других где требуется LTS). 
-
-```yaml
-composer_outdated_check:
-  stage: test
-  image: composer:latest
-  variables:
-    GIT_STRATEGY: none
-  script:
-    - composer outdated --strict --major-only --sort-by-age
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-```
-
-Пример violation
-
-![img_7.png](img_7.png)
-
 #### Psalm
 
 https://github.com/vimeo/psalm
@@ -522,52 +497,14 @@ schema_validate:
     - bin/console doctrine:schema:validate --skip-sync
 ```
 
-#### Rector
-
-https://github.com/rectorphp/rector
-
-Пример конфига
-
-<details>
-
-<summary><strong>rector.php</strong></summary>
-
-```php
-<?php
-
-declare(strict_types=1);
-
-use Rector\Config\RectorConfig;
-use Rector\Php80\Rector\Class_\StringableForToStringRector;
-use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
-
-return RectorConfig::configure()
-    ->withPaths([
-        __DIR__ . '/bin/console',
-        __DIR__ . '/config',
-        __DIR__ . '/public',
-        __DIR__ . '/src',
-        __DIR__ . '/tests',
-    ])
-    ->withParallel()
-    ->withCache(__DIR__ . '/var/rector')
-    ->withPhpSets(php82: true)
-    ->withSkip([
-        StringableForToStringRector::class,
-        AddOverrideAttributeToOverriddenMethodsRector::class,
-    ]);
-
-```
-</details>
-
 #### Check coverage
 
 Здесь мы хотим запретить снижение покрытия тестами
 
 Для работы джобы надо создать access token с правами `read_api`, выпустить его можно в профиле пользователя
 
-Далее надо добавить токен в переменные для пайплайна, для этого нужно перейти в репозиторий -> Settings -> CI/CD -> Variables, 
-добавить переменную с ключом `CHECK_COVERAGE_TOKEN` и значением в виде токена. 
+Далее надо добавить токен в переменные для пайплайна, для этого нужно перейти в репозиторий -> Settings -> CI/CD -> Variables,
+добавить переменную с ключом `CHECK_COVERAGE_TOKEN` и значением в виде токена.
 Стоит сделать ее `masked`,  чтоб не было видно в логах и убрать флаг `protected variable`, чтоб оно работало со всех веток
 
 `Code coverage` сохраняется как один из параметров джобы, и мы можем его достать. Для всех джоб кроме phpunit там будет null
@@ -704,95 +641,11 @@ return RectorConfig::configure()
 
 ![img_3.png](img_3.png)
 
-#### Migration rollback
-
-В процессе разработки мы как правило только накатываем миграции, но не проверяем, что они могут откатываться. Однако если деплой пойдет не по плану, важно чтоб мы могли откатится. Поэтому существует такая джоба. 
-
-```yaml
-migrations_rollback_test:
-  stage: test
-  image: $DEV_IMAGE
-  services:
-    - name: postgres:14
-      alias: postgres
-  variables:
-    APP_ENV: test
-    DATABASE_URL: "pgsql://postgres:postgres@postgres:5432/test_db"
-    POSTGRES_DB: test_db
-    POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: postgres
-    GIT_STRATEGY: none
-  before_script:
-     - apt-get update && apt-get install -y postgresql-client
-     - until pg_isready -h postgres -p 5432 -U postgres; do sleep 1; done
-     - bin/console doctrine:database:create --if-not-exists --env=test
-     - bin/console doctrine:migrations:migrate --no-interaction --env=test
-  script:
-    - bin/console doctrine:migrations:migrate first --no-interaction --env=test
-```
-
-#### PHPMD
-
-https://github.com/phpmd/phpmd
-
-```yaml
-phpmd:
-  stage: test
-  image: $DEV_IMAGE
-  variables:
-    GIT_STRATEGY: none
-  script:
-    - vendor/bin/phpmd src json phpmd.xml --reportfile phpmd_result.json
-  artifacts:
-    when: always
-    paths:
-      - phpmd_result.json
-```
-
-Пример конфига
-
-<details>
-
-<summary><strong>phpmd.xml</strong></summary>
-
-```xml
-<?xml version="1.0"?>
-<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         name="RP PHPMD rule set"
-         xmlns="http://pmd.sf.net/ruleset/1.0.0"
-         xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0
-                     http://pmd.sf.net/ruleset_xml_schema.xsd"
-         xsi:noNamespaceSchemaLocation="
-                     http://pmd.sf.net/ruleset_xml_schema.xsd">
-    <description>*** rule set</description>
-    <rule ref="rulesets/cleancode.xml/DuplicatedArrayKey" />
-    <rule ref="rulesets/cleancode.xml/MissingImport" />
-    <rule ref="rulesets/cleancode.xml/UndefinedVariable" />
-    <rule ref="rulesets/cleancode.xml/ErrorControlOperator" />
-    <rule ref="rulesets/codesize.xml/ExcessiveMethodLength" />
-    <rule ref="rulesets/controversial.xml/Superglobals" />
-    <rule ref="rulesets/design.xml/ExitExpression" />
-    <rule ref="rulesets/design.xml/EvalExpression" />
-    <rule ref="rulesets/design.xml/GotoStatement" />
-    <rule ref="rulesets/design.xml/DevelopmentCodeFragment" />
-    <rule ref="rulesets/design.xml/EmptyCatchBlock" />
-    <rule ref="rulesets/design.xml/CountInLoopExpression" />
-    <rule ref="rulesets/naming.xml/ConstructorWithNameAsEnclosingClass" />
-    <rule ref="rulesets/naming.xml/ConstantNamingConventions" />
-    <rule ref="rulesets/naming.xml/BooleanGetMethodName" />
-    <rule ref="rulesets/unusedcode.xml/UnusedPrivateField" />
-    <rule ref="rulesets/unusedcode.xml/UnusedLocalVariable" />
-    <rule ref="rulesets/unusedcode.xml/UnusedPrivateMethod" />
-    <rule ref="rulesets/unusedcode.xml/UnusedFormalParameter" />
-</ruleset>
-```
-</details>
-
 #### Deptrack
 
 Этот инструмент проверяет архитектурные правила, которые вы задаете. Например, что миграции не должны зависеть от кода (чтоб обеспечить их иммутабельность)
 
-Создаем много конфигурационных файлов под каждый вид проверок: например для директорий в приложении, для модулей в src, 
+Создаем много конфигурационных файлов под каждый вид проверок: например для директорий в приложении, для модулей в src,
 для package-by-feature в модулях и тп, не стоит все пихать в один файл
 
 ```yaml
@@ -851,6 +704,33 @@ deptrac:
 Пример violation
 
 ![img_6.png](img_6.png)
+
+#### Migration rollback
+
+В процессе разработки мы как правило только накатываем миграции, но не проверяем, что они могут откатываться. Однако если деплой пойдет не по плану, важно чтоб мы могли откатится. Поэтому существует такая джоба.
+
+```yaml
+migrations_rollback_test:
+  stage: test
+  image: $DEV_IMAGE
+  services:
+    - name: postgres:14
+      alias: postgres
+  variables:
+    APP_ENV: test
+    DATABASE_URL: "pgsql://postgres:postgres@postgres:5432/test_db"
+    POSTGRES_DB: test_db
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    GIT_STRATEGY: none
+  before_script:
+     - apt-get update && apt-get install -y postgresql-client
+     - until pg_isready -h postgres -p 5432 -U postgres; do sleep 1; done
+     - bin/console doctrine:database:create --if-not-exists --env=test
+     - bin/console doctrine:migrations:migrate --no-interaction --env=test
+  script:
+    - bin/console doctrine:migrations:migrate first --no-interaction --env=test
+```
 
 #### KICS
 
@@ -912,6 +792,153 @@ kics-iac-scan:
 
 </details>
 
+#### Composer outdated
+
+Если патчи и минорные версии довольно часто обновляются в проекте, то переход на мажорные версии случаются редко. 
+
+С этой целью мы можем написать вот такую джобу, которая запускатеся по [расписанию](https://docs.gitlab.com/ci/pipelines/schedules/), допустим раз в 2 недели
+
+С настройкой самой команды стоит поиграться, так как ваша компания может требовать нахождения на LTS версиях фреймворка например, тогда вы можете добавить `--ignore` флаг для пакетов symfony (или любых других где требуется LTS). 
+
+```yaml
+composer_outdated_check:
+  stage: test
+  image: composer:latest
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - composer outdated --strict --major-only --sort-by-age
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+```
+
+Пример violation
+
+![img_7.png](img_7.png)
+
+#### PHPMD
+
+https://github.com/phpmd/phpmd
+
+Анализатор кода, во многом ошибки находит те же что и psalm / rector, мне больше всего нравится его способность указывать на нарушение SRP,
+в виде boolean flags, Npath complexity, cyclomatic complexity.
+
+Я всегда ползовался дефолтным конфигом, но лучше уж его настроить только на те правила, что не закрываются другими инструментами и имеют смысл.
+
+Например есть правило ругающееся на слишком короткие названия переменных, что логично, но как итог у вас появляются сотни violations о переменных $id.
+
+```yaml
+phpmd:
+  stage: test
+  image: $DEV_IMAGE
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - vendor/bin/phpmd src json phpmd.xml --reportfile phpmd_result.json
+  artifacts:
+    when: always
+    paths:
+      - phpmd_result.json
+```
+
+#### Comments density
+
+https://github.com/savinmikhail/Comments-Density
+
+Использую этот инструмент, чтобы не возникал техдолг через `todo`, `fixme` комментарии. Можно однако пойти другим путем и через плагин автоматически создавать тикеты в багтрекере
+
+```yaml
+comments_density:
+  stage: test
+  image: $DEV_IMAGE
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - vendor/bin/comments_density analyze
+```
+
+Пример конфига
+
+<details>
+
+<summary><strong>Пример violation</strong></summary>
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use SavinMikhail\CommentsDensity\AnalyzeComments\Comments\DocBlockComment;
+use SavinMikhail\CommentsDensity\AnalyzeComments\Comments\FixMeComment;
+use SavinMikhail\CommentsDensity\AnalyzeComments\Comments\LicenseComment;
+use SavinMikhail\CommentsDensity\AnalyzeComments\Comments\MissingDocBlock;
+use SavinMikhail\CommentsDensity\AnalyzeComments\Comments\RegularComment;
+use SavinMikhail\CommentsDensity\AnalyzeComments\Comments\TodoComment;
+use SavinMikhail\CommentsDensity\AnalyzeComments\Config\DTO\Config;
+
+return new Config(
+    directories: [
+        'src',
+    ],
+    thresholds: [
+        TodoComment::NAME => 0,
+        FixMeComment::NAME => 0,
+    ],
+    cacheDir: 'var/comments-density',
+    disable: [
+        DocBlockComment::NAME,
+        RegularComment::NAME,
+        LicenseComment::NAME,
+        MissingDocBlock::NAME,
+    ]
+);
+```
+</details>
+
+Пример violation
+
+![img_8.png](img_8.png)
+
+#### Rector
+
+https://github.com/rectorphp/rector
+
+Вообще это инструмент автоматического рефакторинга. Супер полезен при миграции на новую версию php или фреймворка, но имеет и правила для "повседневной" разработки
+
+Пример конфига
+
+<details>
+
+<summary><strong>rector.php</strong></summary>
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Rector\Config\RectorConfig;
+use Rector\Php80\Rector\Class_\StringableForToStringRector;
+use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
+
+return RectorConfig::configure()
+    ->withPaths([
+        __DIR__ . '/bin/console',
+        __DIR__ . '/config',
+        __DIR__ . '/public',
+        __DIR__ . '/src',
+        __DIR__ . '/tests',
+    ])
+    ->withParallel()
+    ->withCache(__DIR__ . '/var/rector')
+    ->withPhpSets(php82: true)
+    ->withSkip([
+        StringableForToStringRector::class,
+        AddOverrideAttributeToOverriddenMethodsRector::class,
+    ]);
+
+```
+</details>
+
 #### Trivy
 
 https://github.com/aquasecurity/trivy
@@ -924,8 +951,6 @@ trivy_container_scan:
     name: docker.io/aquasec/trivy:latest
     entrypoint: [""]
   variables:
-    # No need to clone the repo, we exclusively work on artifacts. See
-    # https://docs.gitlab.com/ee/ci/runners/configure_runners.html#git-strategy
     GIT_STRATEGY: none
     TRIVY_USERNAME: "$CI_REGISTRY_USER"
     TRIVY_PASSWORD: "$CI_REGISTRY_PASSWORD"
@@ -935,19 +960,14 @@ trivy_container_scan:
     FULL_IMAGE_NAME: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
   script:
     - trivy --version
-    # update vulnerabilities db
     - time trivy image --download-db-only
-    # Builds report and puts it in the default workdir $CI_PROJECT_DIR, so `artifacts:` can take it from there
     - time trivy image --exit-code 0 --format template --template "@/contrib/gitlab.tpl"
         --output "$CI_PROJECT_DIR/gl-container-scanning-report.json" "$FULL_IMAGE_NAME"
-    # Prints full report
     - time trivy image --exit-code 0 "$FULL_IMAGE_NAME"
-    # Fail on critical vulnerabilities
     - time trivy image --exit-code 1 --severity CRITICAL "$FULL_IMAGE_NAME"
   cache:
     paths:
       - .trivycache/
-  # Enables https://docs.gitlab.com/ee/user/application_security/container_scanning/ (Container Scanning report is available on GitLab EE Ultimate or GitLab.com Gold)
   artifacts:
     when: always
     name: gl-container-scanning-report.json
@@ -1334,16 +1354,6 @@ composer:
       - composer audit
       - composer check-platform-reqs
 
-composer_outdated_check:
-   stage: test
-   image: composer:latest
-   variables:
-      GIT_STRATEGY: none
-   script:
-      - composer outdated --strict --major-only --sort-by-age
-   rules:
-      - if: '$CI_PIPELINE_SOURCE == "schedule"'
-
 psalm:
    variables:
       GIT_STRATEGY: none
@@ -1352,7 +1362,7 @@ psalm:
    script:
       - vendor/bin/psalm
 
-di_lint: # чтобы проверить, что контейнер компилируется корректно в прод режиме
+di_lint:
    variables:
       GIT_STRATEGY: none
    stage: test
@@ -1369,18 +1379,10 @@ schema_validate:
    script:
       - bin/console doctrine:schema:validate --skip-sync
 
-rector:
-   variables:
-      GIT_STRATEGY: none
-   stage: test
-   image: $DEV_IMAGE
-   script:
-      - vendor/rector/rector/bin/rector --dry-run
-
 check_coverage:
-   image: alpine:latest # you should use PAT cuz JOB_TOKEN doesnt have sufficient permissions
+   image: alpine:latest
    stage: test
-   needs: [phpunit] # why use before_script and after_script?
+   needs: [phpunit]
    variables:
       JOB_NAME: phpunit
       TARGET_BRANCH: master
@@ -1454,6 +1456,15 @@ check_coverage:
            fi
          fi
 
+deptrac:
+   variables:
+      GIT_STRATEGY: none
+   stage: test
+   image: $DEV_IMAGE
+   script:
+      - vendor/bin/deptrac --config-file=deptrac.modules.yaml --cache-file=var/.deptrac.modules.cache
+      - vendor/bin/deptrac --config-file=deptrac.directories.yaml --cache-file=var/.deptrac.directories.cache
+
 migrations_rollback_test:
    stage: test
    image: $DEV_IMAGE
@@ -1475,27 +1486,6 @@ migrations_rollback_test:
    script:
       - bin/console doctrine:migrations:migrate first --no-interaction --env=test
 
-phpmd:
-   stage: test
-   image: $DEV_IMAGE
-   variables:
-      GIT_STRATEGY: none
-   script:
-      - vendor/bin/phpmd src json phpmd.xml --reportfile phpmd_result.json
-   artifacts:
-      when: always
-      paths:
-         - phpmd_result.json
-
-deptrac:
-   variables:
-      GIT_STRATEGY: none
-   stage: test
-   image: $DEV_IMAGE
-   script:
-      - vendor/bin/deptrac --config-file=deptrac.modules.yaml --cache-file=var/.deptrac.modules.cache
-      - vendor/bin/deptrac --config-file=deptrac.directories.yaml --cache-file=var/.deptrac.directories.cache
-
 kics-iac-scan:
    stage: test
    image:
@@ -1509,13 +1499,49 @@ kics-iac-scan:
       paths:
          - kics-results.json
 
+composer_outdated_check:
+   stage: test
+   image: composer:latest
+   variables:
+      GIT_STRATEGY: none
+   script:
+      - composer outdated --strict --major-only --sort-by-age
+   rules:
+      - if: '$CI_PIPELINE_SOURCE == "schedule"'
+
+phpmd:
+   stage: test
+   image: $DEV_IMAGE
+   variables:
+      GIT_STRATEGY: none
+   script:
+      - vendor/bin/phpmd src json phpmd.xml --reportfile phpmd_result.json
+   artifacts:
+      when: always
+      paths:
+         - phpmd_result.json
+
+comments_density:
+   stage: test
+   image: $DEV_IMAGE
+   variables:
+      GIT_STRATEGY: none
+   script:
+      - vendor/bin/comments_density analyze
+
+rector:
+   variables:
+      GIT_STRATEGY: none
+   stage: test
+   image: $DEV_IMAGE
+   script:
+      - vendor/rector/rector/bin/rector --dry-run
+
 trivy_container_scan:
    image:
       name: docker.io/aquasec/trivy:latest
       entrypoint: [""]
    variables:
-      # No need to clone the repo, we exclusively work on artifacts. See
-      # https://docs.gitlab.com/ee/ci/runners/configure_runners.html#git-strategy
       GIT_STRATEGY: none
       TRIVY_USERNAME: "$CI_REGISTRY_USER"
       TRIVY_PASSWORD: "$CI_REGISTRY_PASSWORD"
@@ -1525,19 +1551,14 @@ trivy_container_scan:
       FULL_IMAGE_NAME: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
    script:
       - trivy --version
-      # update vulnerabilities db
       - time trivy image --download-db-only
-      # Builds report and puts it in the default workdir $CI_PROJECT_DIR, so `artifacts:` can take it from there
       - time trivy image --exit-code 0 --format template --template "@/contrib/gitlab.tpl"
          --output "$CI_PROJECT_DIR/gl-container-scanning-report.json" "$FULL_IMAGE_NAME"
-      # Prints full report
       - time trivy image --exit-code 0 "$FULL_IMAGE_NAME"
-      # Fail on critical vulnerabilities
       - time trivy image --exit-code 1 --severity CRITICAL "$FULL_IMAGE_NAME"
    cache:
       paths:
          - .trivycache/
-   # Enables https://docs.gitlab.com/ee/user/application_security/container_scanning/ (Container Scanning report is available on GitLab EE Ultimate or GitLab.com Gold)
    artifacts:
       when: always
       name: gl-container-scanning-report.json
@@ -1607,7 +1628,7 @@ nuclei:
 ```
 </details>
 
-## USEFUL LINKS:
+## Использованные источники
 - GitLab template examples: https://docs.gitlab.com/ci/examples/#cicd-templates
 - GitLab template usage documentation: https://docs.gitlab.com/ci/yaml/includes/#include-a-single-configuration-file
 - GitLab application security documentation: https://docs.gitlab.com/user/application_security/
@@ -1617,10 +1638,5 @@ nuclei:
 - GitLab DevSecOps demo application: https://gitlab.com/gitlab-da/tutorials/security-and-governance/devsecops/simply-vulnerable-notes
 - PHP template https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/PHP.gitlab-ci.yml
 - Restrict test coverage decrease: https://rpadovani.com/gitlab-code-coverage#the-gitlab-pipeline-job
-
-https://dev.to/muhamadhhassan/adding-phpunit-test-log-and-coverage-to-gitlab-cicd-33b5
-https://docs.gitlab.com/ci/testing/unit_test_reports/
-
-добавить чек обновлений для композера раз в 2 недели. 
-
-добавить comments-density to avoid tech debt
+- Adding PHPUnit Test Log and Coverage to GitLab CI/CD Pipeline https://dev.to/muhamadhhassan/adding-phpunit-test-log-and-coverage-to-gitlab-cicd-33b5
+- Unit test reports https://docs.gitlab.com/ci/testing/unit_test_reports/

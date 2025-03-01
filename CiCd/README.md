@@ -903,7 +903,8 @@ return new Config(
 
 https://github.com/rectorphp/rector
 
-Вообще это инструмент автоматического рефакторинга. Супер полезен при миграции на новую версию php или фреймворка, но имеет и правила для "повседневной" разработки
+Вообще это инструмент автоматического рефакторинга. Супер полезен при миграции на новую версию php или фреймворка, но имеет и правила для "повседневной" разработки. 
+Как и php-cs-fixer автоматически фиксит ошибки
 
 Пример конфига
 
@@ -919,6 +920,7 @@ declare(strict_types=1);
 use Rector\Config\RectorConfig;
 use Rector\Php80\Rector\Class_\StringableForToStringRector;
 use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
+use SavinMikhail\AddNamedArgumentsRector\AddNamedArgumentsRector;
 
 return RectorConfig::configure()
     ->withPaths([
@@ -931,6 +933,9 @@ return RectorConfig::configure()
     ->withParallel()
     ->withCache(__DIR__ . '/var/rector')
     ->withPhpSets(php82: true)
+    ->withRules([
+        AddNamedArgumentsRector::class,
+    ])
     ->withSkip([
         StringableForToStringRector::class,
         AddOverrideAttributeToOverriddenMethodsRector::class,
@@ -938,6 +943,10 @@ return RectorConfig::configure()
 
 ```
 </details>
+
+Пример violation
+
+![img_9.png](img_9.png)
 
 #### Trivy
 

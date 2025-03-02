@@ -181,6 +181,8 @@ build_prod_image:
 - я не буду использовать [infection](https://github.com/infection/infection), потому что предпочитаю писать функциональные тесты на целые эндпойнты и не на каждый edgecase. если же у вас library / DDD project, использование мутационного тестирования сильно вырастает (как мне кажется)
 - я не буду использовать линтеры для конфигов (например [dotenv-linter](https://github.com/dotenv-linter/dotenv-linter?tab=readme-ov-file)), потому что пока не вижу много пользы
 
+Если какие-то composer инструменты не хотят ставиться вместе, рекомендую поглядеть в сторону https://github.com/bamarni/composer-bin-plugin
+
 #### PHP-CS-Fixer
 
 https://github.com/PHP-CS-Fixer/PHP-CS-Fixer

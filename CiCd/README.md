@@ -95,6 +95,10 @@ GitLab Runner [автоматически](https://docs.gitlab.com/ci/runners/co
 Чтобы собрать образ, нам нужен докер, в то же время сама джоба сборки образа будет запускаться в докере, поэтому нам нужен dind (Docker-in-Docker), 
 который запускает docker daemon в себе, и мы сможем использовать docker команды.
 
+Для этого этапа нам понадобится в Settings -> CI/CD -> Variables создать 2 переменные:
+- DEV_ENV_FILE - с содержанием .env.local для dev стенда
+- PROD_ENV_FILE - с содержанием .env.local для prod стенда
+
 Чтобы не заморачиваться с установкой в этот контейнер композера, я вынес билд приложения в отдельную джобу:
 
 ```yaml
@@ -111,7 +115,7 @@ build_dev_dependencies:
          - . # приложение автоматически клонируется в job, добавим в артефакт чтоб не клонировать дважды и не было проблем с workdir
 ```
 
-Сборка образа 
+Сборка образа:
 
 ```yaml
 build_dev_image:
@@ -130,7 +134,7 @@ build_dev_image:
    needs: [build_dev_dependencies] # будет ждать пока build_dev_dependencies job не будет выполнена
 ```
 
-По большей части то же самое сделаем для prod сборки
+По большей части то же самое сделаем для prod сборки:
 
 ```yaml
 build_prod_dependencies:
@@ -151,6 +155,7 @@ build_prod_dependencies:
    only:
       - tags
 ```
+
 Здесь мы не устанавливаем dev зависимости, и ускоряем работу autoloader: https://getcomposer.org/doc/articles/autoloader-optimization.md#optimization-level-1-class-map-generation
 
 И оптимизируем чтение .env* файлов: https://symfony.com/doc/current/deployment.html#b-configure-your-environment-variables
@@ -1699,9 +1704,15 @@ deploy_prod:
           cd $PATH_TO_PROJECT
           git pull origin $(git describe --tags --abbrev=0)
 
+          echo "📄 Writing .env.local file..."
+          echo "$PROD_ENV_FILE" > .env.local
+         
           echo "⚙️ Installing dependencies..."
           composer install --no-dev --optimize-autoloader
 
+          echo "🔄 Dumping optimized environment variables..."
+          composer dump-env prod 
+         
           echo "🧹 Clearing cache..."
           bin/console cache:clear
 

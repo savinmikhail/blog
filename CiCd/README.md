@@ -61,10 +61,6 @@ CI/CD расшифровывается как Continuous Integration / Continuou
 
 Я расположу инструменты в порядке важности внедрения в проект (на мой субъективный взгляд)
 
-Для обеспечения безопасности (DevSecOps) используются джобы с Composer, Kics, Trivy, Gitleaks, Nuclei
-
-Есть [готовые шаблоны](https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Security/DAST-API.gitlab-ci.yml) для DAST, но они приспособлены для Ultimate подписки, поэтому переписаны
-
 Этапы (stages) пайплайна будут следующие:
 
         ┌─────────┐     ┌───────────┐     ┌──────────┐     ┌─────────┐
@@ -205,6 +201,8 @@ build_prod_image:
 - я не буду использовать линтеры для конфигов (например [dotenv-linter](https://github.com/dotenv-linter/dotenv-linter?tab=readme-ov-file)), потому что пока не вижу много пользы
 
 Если какие-то инструменты не хотят ставиться вместе, рекомендую поглядеть в сторону https://github.com/bamarni/composer-bin-plugin
+
+Для обеспечения безопасности (DevSecOps) используются джобы с Composer, Kics, Trivy, Gitleaks, Nuclei
 
 #### PHP-CS-Fixer
 
@@ -1251,6 +1249,8 @@ deploy_prod:
 ### DAST
 
 DAST - Dynamic Application Security Testing - на этом этапе инструменты будут сканировать ваше задеплоенное приложение на предмет раскрытых конфигов, sql injections, незащищенного соединения, портов и тп
+
+Есть [готовые шаблоны](https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Security/DAST-API.gitlab-ci.yml) для DAST, но они приспособлены для Ultimate подписки, поэтому переписаны
 
 #### Nuclei
 

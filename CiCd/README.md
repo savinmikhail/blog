@@ -25,13 +25,13 @@ CI/CD расшифровывается как Continuous Integration / Continuou
 
 Под первой частью подразумевается постоянная интеграция нового кода в основную ветку (чему способствуют проверки качества кода перед вливанием). 
 
-Под вторым подразмевается частый деплой новых версий деплоя (деплоим не раз в месяц, а 3 раза в неделю например), 
+Под вторым подразмевается частый деплой новых версий деплоя (например, три раза в неделю вместо одного раза в месяц), 
 чему способствуют:
 - проверки качества кода (не боимся, что не дотестили)
 - автоматическое развертывания приложения (всем видно доехало или нет, снижаем человеческий фактор, меньше рутинной работы)
 
 Цена багов и уязвимостей найденных на проде несомненно выше таковых, найденых еще до того, как код был смержен в master, 
-поэтому имеет и коммерческий смысл делать shift left в отношении проверки кода на качество и безопасность
+поэтому имеет и коммерческий смысл делать shift left (раннее включение проверок в процесс разработки) в отношении проверки кода на качество и безопасность
 
 Часто проверки кода располагают в `pre-commit hooks`, это менее надежно, так как разработчик скорее всего рано или поздно отключит их, 
 плюс это замедляют работу в feature ветке, когда ты хочешь сначала накидать решение которое работает, 
@@ -90,12 +90,19 @@ GitLab Runner [автоматически](https://docs.gitlab.com/ci/runners/co
 
 Поэтому мы будем собирать 2 образа
 
-Чтобы собрать образ, нам нужен докер, в то же время сама джоба сборки образа будет запускаться в докере, поэтому нам нужен dind (Docker-in-Docker), 
+Для сборки образа нам нужен Docker daemon, при этом сама задача (job) выполняется внутри Docker-контейнера поэтому нам нужен dind (Docker-in-Docker), 
 который запускает docker daemon в себе, и мы сможем использовать docker команды.
 
 Для этого этапа нам понадобится в Settings -> CI/CD -> Variables создать 2 переменные:
 - DEV_ENV_FILE - с содержанием .env.local для dev стенда
 - PROD_ENV_FILE - с содержанием .env.local для prod стенда
+
+Значения таких перемнных могут выглядеть следующим образом:
+
+```text
+APP_ENV=prod
+FOO=BAR
+```
 
 Чтобы не заморачиваться с установкой в этот контейнер композера, я вынес билд приложения в отдельную джобу:
 
@@ -400,6 +407,24 @@ return static fn(Configuration $config): Configuration => $config
 ```
 
 </details>
+
+Пример конфига для `composer-require-checker`
+
+<details>
+
+<summary><strong>composer-require-checker.json</strong></summary>
+
+```json
+{
+  "symbol-whitelist" : [
+    "Doctrine\\Bundle\\FixturesBundle\\Fixture",
+    "Doctrine\\Bundle\\FixturesBundle\\FixtureGroupInterface"
+  ]
+}
+```
+
+</details>
+
 
 #### Psalm
 
@@ -1319,40 +1344,45 @@ deploy_prod:
       - tags
    before_script:
       - eval $(ssh-agent -s)
-      - ssh-add <(echo "$SSH_PRIVATE_KEY")  # Load SSH key
+      - ssh-add <(echo "$SSH_PRIVATE_KEY")
    script:
       - echo "🚀 Deploying Production on Bare Metal Server..."
       - |
-        ssh -o StrictHostKeyChecking=no $PROD_USER@$PROD_HOST << 'EOF'
-         set -e  # Stop script if any command fails
-         echo "🔄 Pulling latest changes..."
-         cd $PATH_TO_PROJECT
-         git pull origin $(git describe --tags --abbrev=0)
+         ssh -o StrictHostKeyChecking=no $PROD_USER@$PROD_HOST << 'EOF'
+           set -e
+           echo "🔄 Checking out tag $CI_COMMIT_TAG..."
+           cd $PATH_TO_PROJECT
+           git fetch --tags origin  
+           git checkout $CI_COMMIT_TAG  
 
-         echo "⚙️ Installing dependencies..."
-         composer install --no-dev --optimize-autoloader
+           echo "⚙️ Installing dependencies..."
+           composer install --no-dev --optimize-autoloader
 
-         echo "🧹 Clearing cache..."
-         bin/console cache:clear
+           echo "🧹 Clearing cache..."
+           bin/console cache:clear
 
-         echo "🔄 Running database migrations..."
-         bin/console doctrine:migrations:migrate --no-interaction --all-or-nothing
+           echo "🔄 Running database migrations..."
+           bin/console doctrine:migrations:migrate --no-interaction --all-or-nothing
 
-         echo "✅ Production deployment complete!"
-         EOF
+           echo "✅ Production deployment complete!"
+           EOF
    needs: [build_prod_image]
 
 ```
 
 ### DAST
 
-DAST - Dynamic Application Security Testing - на этом этапе инструменты будут сканировать ваше задеплоенное приложение на предмет раскрытых конфигов, sql injections, незащищенного соединения, портов и тп
+DAST - Dynamic Application Security Testing - на этом этапе инструменты будут сканировать ваше задеплоенное приложение на предмет раскрытых конфигов, 
+sql injections, незащищенного соединения, портов и тп
 
-Есть [готовые шаблоны](https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Security/DAST-API.gitlab-ci.yml) для DAST, но они приспособлены для Ultimate подписки, поэтому переписаны
+Есть [готовые шаблоны](https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Security/DAST-API.gitlab-ci.yml) для DAST, 
+но они приспособлены для Ultimate подписки, поэтому переписаны
 
 #### Nuclei
 
 https://github.com/projectdiscovery/nuclei
+
+По умолчанию ипользует около 8 тысяч различных темплейтов сканирования, из-за чего может относительно долго работать (у меня ушло минут 5 до получения репорта)
 
 ```yaml
 nuclei:
@@ -1374,6 +1404,8 @@ nuclei:
 <details>
 
 <summary><strong>Пример violation</strong></summary>
+
+Вот здесь nuclei нашла вебстраницу с конфигами моего php, публично доступную, и присвоила низкий уровень опасности
 
 ```json
 {
@@ -1824,15 +1856,16 @@ deploy_prod:
       - tags
    before_script:
       - eval $(ssh-agent -s)
-      - ssh-add <(echo "$SSH_PRIVATE_KEY")  # Load SSH key
+      - ssh-add <(echo "$SSH_PRIVATE_KEY")
    script:
       - echo "🚀 Deploying Production on Bare Metal Server..."
       - |
          ssh -o StrictHostKeyChecking=no $PROD_USER@$PROD_HOST << 'EOF'
-           set -e  # Stop script if any command fails
-           echo "🔄 Pulling latest changes..."
+           set -e
+           echo "🔄 Checking out tag $CI_COMMIT_TAG..."
            cd $PATH_TO_PROJECT
-           git pull origin $(git describe --tags --abbrev=0)
+           git fetch --tags origin  
+           git checkout $CI_COMMIT_TAG  
 
            echo "⚙️ Installing dependencies..."
            composer install --no-dev --optimize-autoloader

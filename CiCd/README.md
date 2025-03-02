@@ -109,8 +109,7 @@ build_dev_dependencies:
       - composer install --no-interaction
    artifacts:
       paths:
-         - vendor/
-         - . # приложение автоматически клонируется в job, добавим в артефакт чтоб не клонировать дважды и не было проблем с workdir
+         - . # приложение автоматически клонируется в job, добавим в артефакт чтоб не клонировать дважды и не было проблем с workdir, + установленные зависимости
 ```
 
 Сборка образа:
@@ -148,7 +147,6 @@ build_prod_dependencies:
       - composer dump-env prod
    artifacts:
       paths:
-         - vendor/
          - .
    only:
       - tags
@@ -407,6 +405,16 @@ return static fn(Configuration $config): Configuration => $config
 
 https://github.com/vimeo/psalm
 
+```yaml
+psalm:
+  variables:
+    GIT_STRATEGY: none
+  stage: test
+  image: $DEV_IMAGE
+  script:
+    - vendor/bin/psalm
+```
+
 Пример violations
 
 ![img_5.png](img_5.png)
@@ -661,6 +669,85 @@ schema_validate:
 
 Мы таким образом вычленяем покрытие для текущего пайплайна и для последнего с `TARGET_BRANCH` - скорее всего `master`
 
+```yaml
+check_coverage:
+  image: alpine:latest
+  stage: test
+  needs: [phpunit] 
+  variables:
+    JOB_NAME: phpunit
+    TARGET_BRANCH: master
+    GIT_STRATEGY: none
+  before_script:
+    - apk add --update --no-cache curl jq
+  rules:
+    - if: '$CI_COMMIT_BRANCH != $TARGET_BRANCH'
+  script:
+    - |
+      # Get latest pipeline ID from the target branch using the PAT
+      TARGET_PIPELINE_JSON=$(curl -s --header "PRIVATE-TOKEN: $CHECK_COVERAGE_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines?ref=${TARGET_BRANCH}") #todo add &status=success
+      TARGET_PIPELINE_ID=$(echo "$TARGET_PIPELINE_JSON" | jq -r '.[0].id' 2>/dev/null)
+
+    - |
+      # Handle missing pipeline data
+      if [ -z "$TARGET_PIPELINE_ID" ] || [ "$TARGET_PIPELINE_ID" = "null" ]; then
+        echo "No previous coverage data found. Skipping check.";
+        exit 0;
+      fi
+
+    - |
+      # Fetch coverage from the target branch's last successful pipeline
+      TARGET_JOBS_JSON=$(curl -s --header "PRIVATE-TOKEN: $CHECK_COVERAGE_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines/${TARGET_PIPELINE_ID}/jobs")
+      TARGET_COVERAGE=$(echo "$TARGET_JOBS_JSON" | jq --arg JOB_NAME "$JOB_NAME" '.[] | select(.name==$JOB_NAME) | .coverage' | tr -d '"')
+      echo "target coverage: $TARGET_COVERAGE"
+
+    - |
+      # Fetch current coverage from this pipeline
+      CURRENT_JOBS_JSON=$(curl -s --header "PRIVATE-TOKEN: $CHECK_COVERAGE_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines/${CI_PIPELINE_ID}/jobs")
+      CURRENT_COVERAGE=$(echo "$CURRENT_JOBS_JSON" | jq --arg JOB_NAME "$JOB_NAME" '.[] | select(.name==$JOB_NAME) | .coverage' | tr -d '"')
+      echo "current coverage: $CURRENT_COVERAGE" 
+
+    # Validate if coverage values are available
+    - |
+      if [ -z "$TARGET_COVERAGE" ]; then 
+        echo "No previous coverage data found. Skipping check."; 
+        exit 0;
+      fi
+
+    - |
+      if [ -z "$CURRENT_COVERAGE" ]; then 
+        echo "Failed to retrieve current coverage data."; 
+        exit 1;
+      fi
+
+    - |
+      # Convert to numeric but preserve decimals
+      TARGET_COVERAGE_INT=$(echo "$TARGET_COVERAGE" | awk '{print int($1)}')
+      CURRENT_COVERAGE_INT=$(echo "$CURRENT_COVERAGE" | awk '{print int($1)}')
+      
+      # Use bc for floating point comparison (will keep decimal precision)
+      TARGET_COVERAGE_FLOAT=$(echo "$TARGET_COVERAGE" | sed 's/%//')
+      CURRENT_COVERAGE_FLOAT=$(echo "$CURRENT_COVERAGE" | sed 's/%//')
+      
+      # Compare with decimals if both values are below 1%
+      if (( $(echo "$TARGET_COVERAGE_FLOAT < 1" | bc -l) )) && (( $(echo "$CURRENT_COVERAGE_FLOAT < 1" | bc -l) )); then
+        if (( $(echo "$CURRENT_COVERAGE_FLOAT < $TARGET_COVERAGE_FLOAT" | bc -l) )); then
+          echo "Coverage decreased from ${TARGET_COVERAGE}% to ${CURRENT_COVERAGE}%! Merge request blocked.";
+          exit 1;
+        else 
+          echo "Coverage check passed: ${CURRENT_COVERAGE}% (previous: ${TARGET_COVERAGE}%)";
+        fi
+      else
+        # Use integer comparison for values >= 1%
+        if [ "$CURRENT_COVERAGE_INT" -lt "$TARGET_COVERAGE_INT" ]; then 
+          echo "Coverage decreased from ${TARGET_COVERAGE}% to ${CURRENT_COVERAGE}%! Merge request blocked.";
+          exit 1;
+        else 
+          echo "Coverage check passed: ${CURRENT_COVERAGE}% (previous: ${TARGET_COVERAGE}%)";
+        fi
+      fi
+
+```
 Пример violation
 
 ![img_3.png](img_3.png)
@@ -885,7 +972,7 @@ comments_density:
 
 <details>
 
-<summary><strong>Пример violation</strong></summary>
+<summary><strong>comments_density.php</strong></summary>
 
 ```php
 <?php
@@ -929,6 +1016,16 @@ https://github.com/rectorphp/rector
 
 Вообще это инструмент автоматического рефакторинга. Супер полезен при миграции на новую версию php или фреймворка, но имеет и правила для "повседневной" разработки. 
 Как и php-cs-fixer автоматически фиксит ошибки
+
+```yaml
+rector:
+  variables:
+    GIT_STRATEGY: none
+  stage: test
+  image: $DEV_IMAGE
+  script:
+    - vendor/rector/rector/bin/rector --dry-run
+```
 
 Пример конфига
 

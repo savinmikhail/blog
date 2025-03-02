@@ -1339,6 +1339,8 @@ variables:
 build_dev_dependencies:
    stage: build
    image: composer:latest
+   before_script:
+      - echo "$DEV_ENV_FILE" > .env.local
    script:
       - composer install --no-interaction
    artifacts:
@@ -1367,6 +1369,8 @@ build_prod_dependencies:
    variables:
       APP_ENV: prod
       APP_DEBUG: 0
+   before_script:
+      - echo "$PROD_ENV_FILE" > .env.local
    script:
       - composer install --no-dev --optimize-autoloader --no-interaction
       - composer dump-env prod
@@ -1674,19 +1678,46 @@ gitleaks_secret_detection:
 deploy_dev:
    stage: deploy
    when: manual
-   image: docker:20.10.16
-   services:
-      - name: docker:dind
-        alias: dind
    before_script:
-      - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+      - eval $(ssh-agent -s)
+      - ssh-add <(echo "$SSH_PRIVATE_KEY")  # Load SSH key
    script:
-      - echo "🚀 Deploying Dev Environment using Docker..."
-      - docker pull $DEV_IMAGE
-      - docker stop myapp-dev || true
-      - docker rm myapp-dev || true
-      - docker run -d --name myapp-dev -p 8080:80 $DEV_IMAGE
-      - echo "✅ Dev deployment successful!"
+      - echo "🚀 Deploying Dev Environment on Remote Server..."
+      - |
+         ssh -o StrictHostKeyChecking=no $DEV_USER@$DEV_HOST << 'EOF'
+         set -e  # Stop if any command fails
+
+         echo "🔄 Pulling latest Docker image..."
+         docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+         docker pull $DEV_IMAGE
+
+         echo "🛑 Stopping existing container..."
+         docker rename myapp-dev myapp-dev-backup || true  # Keep backup
+         docker stop myapp-dev-backup || true
+         docker rm myapp-dev-backup || true
+
+         echo "🚀 Starting new container..."
+         docker run -d --name myapp-dev -p 8080:80 $DEV_IMAGE
+
+         echo "⏳ Waiting for container to start..."
+         sleep 5  # Ensure the container is running before executing commands
+
+         echo "🔄 Running database migrations (All-or-Nothing)..."
+         if docker exec myapp-dev bin/console doctrine:migrations:migrate --no-interaction --all-or-nothing; then
+             echo "✅ Migrations successful!"
+             docker rm myapp-dev-backup || true  # Remove backup since new deployment works
+         else
+             echo "❌ Migration failed! Rolling back..."
+             docker stop myapp-dev || true
+             docker rm myapp-dev || true
+             docker rename myapp-dev-backup myapp-dev  # Restore previous version
+             docker start myapp-dev
+             echo "🔄 Rolled back to previous version."
+             exit 1  # Fail the deployment
+         fi
+
+         echo "✅ Dev deployment complete!"
+         EOF
    needs: [build_dev_image]
 
 deploy_prod:
@@ -1698,31 +1729,25 @@ deploy_prod:
       - eval $(ssh-agent -s)
       - ssh-add <(echo "$SSH_PRIVATE_KEY")  # Load SSH key
    script:
-      - echo "🚀 Deploying Production on Bare Metal via SSH..."
+      - echo "🚀 Deploying Production on Bare Metal Server..."
       - |
-         ssh -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
-          set -e  # Stop script if any command fails
-          echo "🔄 Pulling latest changes..."
-          cd $PATH_TO_PROJECT
-          git pull origin $(git describe --tags --abbrev=0)
+         ssh -o StrictHostKeyChecking=no $PROD_USER@$PROD_HOST << 'EOF'
+           set -e  # Stop script if any command fails
+           echo "🔄 Pulling latest changes..."
+           cd $PATH_TO_PROJECT
+           git pull origin $(git describe --tags --abbrev=0)
 
-          echo "📄 Writing .env.local file..."
-          echo "$PROD_ENV_FILE" > .env.local
-         
-          echo "⚙️ Installing dependencies..."
-          composer install --no-dev --optimize-autoloader
+           echo "⚙️ Installing dependencies..."
+           composer install --no-dev --optimize-autoloader
 
-          echo "🔄 Dumping optimized environment variables..."
-          composer dump-env prod 
-         
-          echo "🧹 Clearing cache..."
-          bin/console cache:clear
+           echo "🧹 Clearing cache..."
+           bin/console cache:clear
 
-          echo "🔄 Running database migrations..."
-          bin/console doctrine:migrations:migrate --no-interaction
+           echo "🔄 Running database migrations..."
+           bin/console doctrine:migrations:migrate --no-interaction --all-or-nothing
 
-          echo "✅ Production deployment complete!"
-          EOF
+           echo "✅ Production deployment complete!"
+           EOF
    needs: [build_prod_image]
 
 nuclei:

@@ -1239,6 +1239,12 @@ nuclei:
 
 ## Полный пример
 
+В итоге мы получили примерно следующую картину:
+
+![img_10.png](img_10.png)
+
+Полный файл: 
+
 <details>
 
 <summary><strong>.gitlab-ci.yml</strong></summary>

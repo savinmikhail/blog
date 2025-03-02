@@ -2,13 +2,13 @@
 
 ![img_1.png](img_1.png)
 
-В этом лонгриде я расскажу немного теории о CI/CD в целом, в основном это будут практические примеры и советы, 
+В этом лонгриде я расскажу немного теории о CI/CD, но в основном это будут практические примеры и советы, 
 в первую очередь полезные для PHP backend developers, однако некоторые инструменты подходят и для других языков, 
 и вы можете уловить overall idea как писать пайплайны
 
 ## Содержание
 1. [Почему CI/CD полезен и для бизнеса и для разработки](#почему-cicd-полезен-и-для-бизнеса-и-для-разработки)
-2. [Этапы пайплайна](#этапы-пайплайна)
+2. [Пишем пайплайн](#пишем-пайплайн)
     - [Build](#build)
     - [Test](#test)
     - [Deploy](#deploy)
@@ -24,58 +24,55 @@ CI/CD расшифровывается как Continuous Integration / Continuou
 Под первой частью подразумевается постоянная интеграция нового кода в основную ветку (чему способствуют проверки качества кода перед вливанием). 
 
 Под вторым подразмевается частый деплой новых версий деплоя (деплоим не раз в месяц, а 3 раза в неделю например), 
-чему способствуют проверки качества кода (не боимся что недотестили) + автоматическое развертывания приложения (всем видно доехало или нет,
-снижаем человеческий фактор, меньше рутинной работы)
+чему способствуют:
+- проверки качества кода (не боимся, что не дотестили)
+- автоматическое развертывания приложения (всем видно доехало или нет, снижаем человеческий фактор, меньше рутинной работы)
 
-Цена багов и уязвимостей найденных на проде несомненно выше таковых найденых еще до того, как код был смержен в master, 
+Цена багов и уязвимостей найденных на проде несомненно выше таковых, найденых еще до того, как код был смержен в master, 
 поэтому имеет и коммерческий смысл делать shift left в отношении проверки кода на качество и безопасность
 
-Часто проверки кода располагают в pre-commit hooks, это менее надежно - разработчик скорее всего рано или поздно отключит их, 
+Часто проверки кода располагают в `pre-commit hooks`, это менее надежно, так как разработчик скорее всего рано или поздно отключит их, 
 плюс это замедляют работу в feature ветке, когда ты хочешь сначала накидать решение которое работает, 
 а потом уже отрефакторить его, чтоб оно было более поддерживаемое
 
 Интеграция различных инструментов контроля качества кода прокачивает ваши харды, потому что дает фидбек, что вы плохо написали и как это исправить
 
 Чем больше проверок в пайплайне, тем меньше смысла в проведении code-review, потому что если пайплайн зеленый, то уже малая вероятность неправильных типов / кодстайла / архитектуры. 
-Конечно могут оставаться неоптимальные решения, неправильно понятая бизнес логика
+Хотя, конечно могут оставаться неоптимальные решения, неправильно понятая бизнес логика
 
-Чем больше проверок в пайплайне, тем меньше Fear driven development - если ваши изменения прошли сквозь пайплайн, 
-то вряд ли вы написали что-то, что сразу упадет. А если и написали, то виноват пайплайн, который это не нашел. 
+Чем больше проверок в пайплайне, тем меньше проявляется Fear driven development - если ваши изменения прошли сквозь пайплайн, 
+то вряд ли вы написали что-то, что сразу упадет. А если и упадет, то виноват пайплайн, который это не нашел. 
 Стоит задуматься, как можно изменить пайплайн, чтобы он в следующий раз не пропустил такой код
 
-Чем больше проверок в пайплайне, тем медленнее вносятся изменения в код, поэтому не рекомендую затаскивать все возможные инструменты сразу. 
+## Пишем пайплайн
+
+Чем больше проверок в пайплайне, тем медленнее вносятся изменения в код, поэтому не рекомендую затаскивать все возможные инструменты сразу.
 
 Многие инструменты имеют функционал baseline, другие инструменты имеют настраиваемую сложность или фильтры найденных уязвимостейч, то облегчает их интеграцию.
 
-## Этапы пайплайна
-
-Часть расписанных здесь джоб актуальна только для symfony (например di, schema validate)
+Часть расписанных здесь джоб актуальна только для symfony (например `di`, `schema validate`)
 
 Мы будем рассматривать GitLab CI/CD, потому что по моему опыту самый распространенный инструмент в коммерческой разработке
 
-Джобы в test stage запускаются параллельно, поэтому нет смысла располагать их из расчета fail fast
+Джобы в stage запускаются параллельно, если не указать иное, поэтому нет смысла располагать их из расчета fail fast
 
 ![img_2.png](img_2.png)
 
-Я расположу их в порядке важности внедрения в проект (на мой субъективный взгляд)
+Я расположу инструменты в порядке важности внедрения в проект (на мой субъективный взгляд)
 
 Для обеспечения безопасности (DevSecOps) используются джобы с Composer, Kics, Trivy, Gitleaks, Nuclei
 
-Есть [готовые шаблоны](https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Security/DAST-API.gitlab-ci.yml) для DAST jobs приспособлены для Ultimate подписки, поэтому переписаны
+Есть [готовые шаблоны](https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Security/DAST-API.gitlab-ci.yml) для DAST, но они приспособлены для Ultimate подписки, поэтому переписаны
 
-Этапы (stages) пайплайна:
+Этапы (stages) пайплайна будут следующие:
 
         ┌─────────┐     ┌───────────┐     ┌──────────┐     ┌─────────┐
         │  Build  │ →   │   Test    │ →   │  Deploy  │ →   │  DAST   │
         └─────────┘     └───────────┘     └──────────┘     └─────────┘
 
-Каждый эта содержит набор задач (jobs), каждая задача может запускать несколько команд
+Пайплайн лучше писать в `pipeline editor` прямо в интерфейсе GitLab, так как там сразу есть валидация конфига
 
-GitLab Runner [автоматически](https://docs.gitlab.com/ci/runners/configure_runners/#git-strategy) клонирует ваш репозиторий в контейнер с джобой прежде чем выполнять указанный script
-
-Создадим файл `.gitlab-ci.yaml`
-
-Опишем stages пайплайна
+Описываются наши stages вот так
 
 ```yaml
 stages:
@@ -85,16 +82,27 @@ stages:
   - DAST
 ```
 
+Каждый stage содержит набор задач (jobs), каждая задача может запускать несколько команд
+
+GitLab Runner [автоматически](https://docs.gitlab.com/ci/runners/configure_runners/#git-strategy) (если не указано иное) клонирует ваш репозиторий в контейнер с джобой, прежде чем выполнять указанный script
+
 ### Build
-Нам нужен образ приложения, в котором будем выполнять проверки качества кода. Но как правило такой образ вы не хотите деплоить, так как установлены dev зависимости, возможно включен xdebug и т.д.
+Нам нужен образ приложения, в котором будем выполнять проверки качества кода. 
+Но как правило такой образ вы не хотите деплоить, так как установлены dev зависимости, возможно включен xdebug и т.д.
+
 Поэтому мы будем собирать 2 образа
-Чтобы собрать образ, нам нужен докер, в то же время сама джоба сборки образа будет запускаться в докере, поэтому нам нужен dind (Docker-in-Docker), который запускает docker daemon в себе, и мы сможем использовать docker команды.
+
+Чтобы собрать образ, нам нужен докер, в то же время сама джоба сборки образа будет запускаться в докере, поэтому нам нужен dind (Docker-in-Docker), 
+который запускает docker daemon в себе, и мы сможем использовать docker команды.
+
 Чтобы не заморачиваться с установкой в этот контейнер композера, я вынес билд приложения в отдельную джобу:
 
 ```yaml
 build_dev_dependencies:
    stage: build
    image: composer:latest
+   before_script:
+      - echo "$DEV_ENV_FILE" > .env.local
    script:
       - composer install --no-interaction
    artifacts:
@@ -131,6 +139,8 @@ build_prod_dependencies:
    variables:
       APP_ENV: prod
       APP_DEBUG: 0
+   before_script:
+      - echo "$PROD_ENV_FILE" > .env.local
    script:
       - composer install --no-dev --optimize-autoloader --no-interaction
       - composer dump-env prod
@@ -142,14 +152,18 @@ build_prod_dependencies:
       - tags
 ```
 Здесь мы не устанавливаем dev зависимости, и ускоряем работу autoloader: https://getcomposer.org/doc/articles/autoloader-optimization.md#optimization-level-1-class-map-generation
+
 И оптимизируем чтение .env* файлов: https://symfony.com/doc/current/deployment.html#b-configure-your-environment-variables
+
 Так же мы не хотим на каждый чих собирать prod сборку, поэтому конфигурируем запуск только когда был выпущен релиз (а значит и тег):
+
 ```yaml
    only:
       - tags
 ```
 
 Сборка образа:
+
 ```yaml
 build_prod_image:
    services:
@@ -184,7 +198,7 @@ build_prod_image:
 - я не буду использовать [infection](https://github.com/infection/infection), потому что предпочитаю писать функциональные тесты на целые эндпойнты и не на каждый edgecase. если же у вас library / DDD project, использование мутационного тестирования сильно вырастает (как мне кажется)
 - я не буду использовать линтеры для конфигов (например [dotenv-linter](https://github.com/dotenv-linter/dotenv-linter?tab=readme-ov-file)), потому что пока не вижу много пользы
 
-Если какие-то composer инструменты не хотят ставиться вместе, рекомендую поглядеть в сторону https://github.com/bamarni/composer-bin-plugin
+Если какие-то инструменты не хотят ставиться вместе, рекомендую поглядеть в сторону https://github.com/bamarni/composer-bin-plugin
 
 #### PHP-CS-Fixer
 
@@ -1146,36 +1160,86 @@ gitleaks_secret_detection:
 
 Аналогично сборке приложения, имеем две джобы для деплоя, в целом одинаковых
 
+Деплой на dev стенд описан через docker, на prod - через bare metal, просто для примера (лучше деплоить image, зря мы что ли собирали образ в build stage?)
+
+Если у вас k8s, то что я вам тут вообще рассказываю :)
+
 ```yaml
 deploy_dev:
-  stage: deploy
-  when: manual
-  script:
-    - echo "Deploying the application..."
-#    здесь будет кастомная логика. в самом простом виде
-#     - ssh $HOST:$USER \
-#     && cd $PATH_TO_PROJECT \
-#     && git pull \
-#     && bin/console bin/console clear:cache \
-#     && bin/console doctrine:migration:migrate
-#  в более продвинутом варианте подменяем контейнер на сервере сбилженным image'м
-    - echo "Application successfully deployed."
+   stage: deploy
+   when: manual
+   before_script:
+      - eval $(ssh-agent -s)
+      - ssh-add <(echo "$SSH_PRIVATE_KEY")  # Load SSH key
+   script:
+      - echo "🚀 Deploying Dev Environment on Remote Server..."
+      - |
+         ssh -o StrictHostKeyChecking=no $DEV_USER@$DEV_HOST << 'EOF'
+          set -e  # Stop if any command fails
+
+          echo "🔄 Pulling latest Docker image..."
+          docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+          docker pull $DEV_IMAGE
+
+          echo "🛑 Stopping existing container..."
+          docker rename myapp-dev myapp-dev-backup || true  # Keep backup
+          docker stop myapp-dev-backup || true
+          docker rm myapp-dev-backup || true
+
+          echo "🚀 Starting new container..."
+          docker run -d --name myapp-dev -p 8080:80 $DEV_IMAGE
+
+          echo "⏳ Waiting for container to start..."
+          sleep 5  # Ensure the container is running before executing commands
+
+          echo "🔄 Running database migrations (All-or-Nothing)..."
+          if docker exec myapp-dev bin/console doctrine:migrations:migrate --no-interaction --all-or-nothing; then
+             echo "✅ Migrations successful!"
+             docker rm myapp-dev-backup || true  # Remove backup since new deployment works
+          else
+             echo "❌ Migration failed! Rolling back..."
+             docker stop myapp-dev || true
+             docker rm myapp-dev || true
+             docker rename myapp-dev-backup myapp-dev  # Restore previous version
+             docker start myapp-dev
+             echo "🔄 Rolled back to previous version."
+             exit 1  # Fail the deployment
+          fi
+
+          echo "✅ Dev deployment complete!"
+          EOF
+   needs: [build_dev_image]
 
 deploy_prod:
-  stage: deploy
-  when: manual
-  only:
-    - tags
-  script:
-    - echo "Deploying the application..."
-    #    здесь будет кастомная логика. в самом простом виде
-    #     - ssh $HOST:$USER \
-    #     && cd $PATH_TO_PROJECT \
-    #     && git pull \
-    #     && bin/console bin/console clear:cache \
-    #     && bin/console doctrine:migration:migrate
-    #  в более продвинутом варианте подменяем контейнер на сервере сбилженным image'м
-    - echo "Application successfully deployed."
+   stage: deploy
+   when: manual
+   only:
+      - tags
+   before_script:
+      - eval $(ssh-agent -s)
+      - ssh-add <(echo "$SSH_PRIVATE_KEY")  # Load SSH key
+   script:
+      - echo "🚀 Deploying Production on Bare Metal Server..."
+      - |
+        ssh -o StrictHostKeyChecking=no $PROD_USER@$PROD_HOST << 'EOF'
+         set -e  # Stop script if any command fails
+         echo "🔄 Pulling latest changes..."
+         cd $PATH_TO_PROJECT
+         git pull origin $(git describe --tags --abbrev=0)
+
+         echo "⚙️ Installing dependencies..."
+         composer install --no-dev --optimize-autoloader
+
+         echo "🧹 Clearing cache..."
+         bin/console cache:clear
+
+         echo "🔄 Running database migrations..."
+         bin/console doctrine:migrations:migrate --no-interaction --all-or-nothing
+
+         echo "✅ Production deployment complete!"
+         EOF
+   needs: [build_prod_image]
+
 ```
 
 ### DAST
@@ -1603,32 +1667,50 @@ gitleaks_secret_detection:
 deploy_dev:
    stage: deploy
    when: manual
+   image: docker:20.10.16
+   services:
+      - name: docker:dind
+        alias: dind
+   before_script:
+      - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
    script:
-      - echo "Deploying the application..."
-      #    здесь будет кастомная логика. в самом простом виде
-      #     - ssh $HOST:$USER \
-      #     && cd $PATH_TO_PROJECT \
-      #     && git pull \
-      #     && bin/console bin/console clear:cache \
-      #     && bin/console doctrine:migration:migrate
-      #  в более продвинутом варианте подменяем контейнер на сервере сбилженным image'м
-      - echo "Application successfully deployed."
+      - echo "🚀 Deploying Dev Environment using Docker..."
+      - docker pull $DEV_IMAGE
+      - docker stop myapp-dev || true
+      - docker rm myapp-dev || true
+      - docker run -d --name myapp-dev -p 8080:80 $DEV_IMAGE
+      - echo "✅ Dev deployment successful!"
+   needs: [build_dev_image]
 
 deploy_prod:
    stage: deploy
    when: manual
    only:
       - tags
+   before_script:
+      - eval $(ssh-agent -s)
+      - ssh-add <(echo "$SSH_PRIVATE_KEY")  # Load SSH key
    script:
-      - echo "Deploying the application..."
-      #    здесь будет кастомная логика. в самом простом виде
-      #     - ssh $HOST:$USER \
-      #     && cd $PATH_TO_PROJECT \
-      #     && git pull \
-      #     && bin/console bin/console clear:cache \
-      #     && bin/console doctrine:migration:migrate
-      #  в более продвинутом варианте подменяем контейнер на сервере сбилженным image'м
-      - echo "Application successfully deployed."
+      - echo "🚀 Deploying Production on Bare Metal via SSH..."
+      - |
+         ssh -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
+          set -e  # Stop script if any command fails
+          echo "🔄 Pulling latest changes..."
+          cd $PATH_TO_PROJECT
+          git pull origin $(git describe --tags --abbrev=0)
+
+          echo "⚙️ Installing dependencies..."
+          composer install --no-dev --optimize-autoloader
+
+          echo "🧹 Clearing cache..."
+          bin/console cache:clear
+
+          echo "🔄 Running database migrations..."
+          bin/console doctrine:migrations:migrate --no-interaction
+
+          echo "✅ Production deployment complete!"
+          EOF
+   needs: [build_prod_image]
 
 nuclei:
    stage: DAST

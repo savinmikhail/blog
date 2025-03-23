@@ -570,7 +570,7 @@ schema_validate:
 
 <details>
 
-<summary><strong>rector.php</strong></summary>
+<summary><strong>jobs.json</strong></summary>
 
 ```json
 {
@@ -777,7 +777,7 @@ check_coverage:
 
 ![img_3.png](img_3.png)
 
-#### Deptrack
+#### Deptrac
 
 Этот инструмент проверяет архитектурные правила, которые вы задаете. Например, что миграции не должны зависеть от кода (чтоб обеспечить их иммутабельность)
 

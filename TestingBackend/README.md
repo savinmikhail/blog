@@ -434,6 +434,8 @@ final class CoreStorageServiceStub extends CoreStorageService
 
 Или у InMemoryMailer узнать сколько писем было отправлено
 
+Пример:
+
 ```php
 <?php
 

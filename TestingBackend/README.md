@@ -1,262 +1,311 @@
 # Пишем тесты для backend приложений
 
-**Введение**
+## Введение
 
-Давайте поговорим о том, зачем и как писать тесты для backend-приложений.
+Статья нацелена в первую очередь на PHP backend developers junior/middle уровня, чтобы познакомить с теорией, 
+которую спрашивают на собесах, и с практическими примерами/советами полезными для самой разработки
 
-Зачем вообще тестировать код, какие инструменты использовать, и что стоит знать для прохождения собеседований
+Здесь хочу рассказать зачем вообще тестировать код, какие инструменты использовать, какие есть паттерны и тп
 
 ---
 
-**Зачем писать тесты?**
+## Содержание
+1. [Зачем писать тесты?](#зачем-писать-тесты)
+2. [Инструменты и паттерны](#инструменты)
+   - [Инструменты](#инструменты)
+     - [PHPUnit](#1-phpunit)
+     - [Faker](#2-faker)
+     - [Sendstruck](#3-sendstruck)
+     - [Fixtures](#4-fixtures)
+     - [Infection](#5-infection)
+     - [Pest](#6-pest)
+     - [Codeception](#7-codeception)
+3. [Unit vs Интеграционные тесты](#unit-vs-интеграционные-тесты)
+4. [Stubs vs Mocks](#stubs-vs-mocks)
+5. [TDD и метрики](#tdd)
+6. [AAA-паттерн](#aaa-паттерн)
+7. [Метрики](#метрики)
+8. [Итоги и советы](#итоги-и-советы)
+
+---
+
+## Зачем писать тесты?
 Здесь есть несколько аргументов, я расскажу их в порядке важности (для меня по крайней мере)
 
 1. **Уверенность в своем коде**:
 
-   Тесты ловят ошибки до передачи задачи в тестирование, что приводит к уверенности в своем коде.
+Тесты ловят ошибки до передачи задачи в тестирование, что приводит к уверенности в своем коде.
 
-   По крайней мере вы точно знаете что GET запрос на такой-то эндпойнт не свалится с эксепшном в самом базовом сценарии.
+По крайней мере вы точно знаете что GET запрос на такой-то эндпойнт не свалится с эксепшном в самом базовом сценарии.
 
-   Искать же все баги в автотестах  нет смысла, так как как только вы их нашли и починили, тесты на этот case имеют мало смысла
+Однако мы хотим сконцентрироваться на smoke test - искать все баги в автотестах нет смысла, так как как только вы их нашли и починили, тесты на этот case имеют мало смысла
 
-   (если это был просто глупый баг, а не какой-то edgecase бизнес логики, который надо проверять)
+(если это был просто глупый баг, а не какой-то edgecase бизнес логики, который надо проверять)
+
+То есть наши тесты нам будут гарантировать, что самые базовые сценарии приложения работают
 
 2. **Ускорение рефакторинга**:
-   Тесты позволяют быстро проверять изменения.
 
-   Есть понятие Fear driven development (разработка, движимая страхом), когда вам достался контроллер на 3к строк,
-   который вызывает другие контроллеры (а я видел такое).
+Тесты позволяют быстро проверять изменения.
 
-   Но отрефакторить вам это запрещает вся команда, потому что можно сломать базовую функциональность,
-   и не сразу узнать об этом
+Есть понятие Fear driven development (разработка, движимая страхом), когда вам достался контроллер на 3к строк,
+который вызывает другие контроллеры (а я видел такое).
+
+Но отрефакторить вам это запрещает вся команда, потому что можно сломать базовую функциональность,
+и не сразу узнать об этом
 
 3. **Удобство**
 
-   Часто бывает быстрее написать тест, который совершает запрос на эндпойнт и прогонять его одним нажатием, чем прибегать к постману или сваггеру.
+Часто бывает быстрее написать тест, который совершает запрос на эндпойнт и прогонять его одним нажатием, чем прибегать к постману или сваггеру.
 
-   Вот как в примере - по сути 4 строки кода. Наверняка вы напишете это быстрее, чем запустите postman.
+Вот как в примере - по сути 4 строки кода. Наверняка вы напишете это быстрее, чем запустите postman.
 
-    ```php
-        public function testGetEventSettings(): void
-        {
-            // arrange
-            $client = self::createAuthorizedClient(TestCoreUserProvider::TEST_USER1);
-    
-            // act
-            $response = $client->request('GET', '/api/event_settings')->toArray(false);
-    
-            // assert
-            self::assertResponseIsSuccessful();
-            self::assertEquals(count(EventTypeEnum::cases()), $response['hydra:totalItems']);
-        }
-    ```
+ ```php
+     public function testGetEventSettings(): void
+     {
+         // arrange
+         $client = self::createAuthorizedClient(TestCoreUserProvider::TEST_USER1);
+ 
+         // act
+         $response = $client->request('GET', '/api/event_settings')->toArray(false);
+ 
+         // assert
+         self::assertResponseIsSuccessful();
+         self::assertEquals(count(EventTypeEnum::cases()), $response['hydra:totalItems']);
+     }
+ ```
 
 4. **Проектирование кода**:
 
-   Сложность тестирования сигнализирует о проблемах с зависимостями
-   ([Dependency Elimination](https://qualityisspeed.blogspot.com/2014/09/beyond-solid-dependency-elimination.html)).
+Сложность тестирования сигнализирует о проблемах с зависимостями
+([Dependency Elimination](https://qualityisspeed.blogspot.com/2014/09/beyond-solid-dependency-elimination.html)).
 
-   Например возможно ваш сервис требует кучу сложных зависимостей, которые надо инстанциировать и передать.
+Например возможно ваш сервис требует кучу сложных зависимостей, которые надо инстанциировать и передать.
 
-   Если это сложно сделать в тестах, очень вероятно что класс делает все подряд.
+Если это сложно сделать в тестах, очень вероятно что класс делает все подряд.
 
-   у меня был такой пример, когда один класс работал и с кешом, и с файловой системой, и с интерфейсов ввода вывода.
+у меня был такой пример, когда один класс работал и с кешом, и с файловой системой, и с интерфейсов ввода вывода.
 
-   это было очень сложно тестировать, так как приходилось мокать все вокруг.
+это было очень сложно тестировать, так как приходилось мокать все вокруг.
 
-   в итоге я разделил этот класс условно на 3, один доставал что надо из файловой системы,
+в итоге я разделил этот класс условно на 3, один доставал что надо из файловой системы,
 
-   другой умел писать в консоль, третий оставил в себе основную логику вместе с кешом.
+другой умел писать в консоль, третий оставил в себе основную логику вместе с кешом.
 
-   Теперть для класса с основной логикой я мог просто передавать какие-то ДТОшки, вместо того чтоб создавать виртуальные файлы и наполнять их какими-то данными
+Теперть для класса с основной логикой я мог просто передавать какие-то ДТОшки, вместо того чтоб создавать виртуальные файлы и наполнять их какими-то данными
 
 5. **Документация кода**:
 
-   Это одинаково актуально как для АПИ приложения - то есть для эндпойнтов, так и для АПИ классов - например для библиотек.
+Это одинаково актуально как для АПИ приложения - то есть для эндпойнтов, так и для АПИ классов - например для библиотек.
 
-   В идеальном мире у каждого проекта несомненно написана документация в виде ридми или сваггера и она всегда актуальна, но в нашем мире не всегда так.
+В идеальном мире у каждого проекта несомненно написана документация в виде ридми или сваггера и она всегда актуальна, но в нашем мире не всегда так.
 
-   и следющее место куда можно обратиться за примерами как исползовать АПИ системы - это ее тесты.
+и следющее место куда можно обратиться за примерами как исползовать АПИ системы - это ее тесты.
 
-   На последнем рабочем проекте, мне было настолько непонятно как что работает, что я потратил первые дня 2 чтоб описать тестами существующий функционал.
+На последнем рабочем проекте, мне было настолько непонятно как что работает, что я потратил первые дня 2 чтоб описать тестами существующий функционал.
 
-   Благодаря чему на 3й день я смог уже писать новые фичи
+Благодаря чему на 3й день я смог уже писать новые фичи
 
 ---
 
-**Инструменты и паттерны**
+## Инструменты
 
-**Инструменты**:
-1. [PHPUnit](https://github.com/sebastianbergmann/phpunit)
+### 1. PHPUnit
 
-   Самый известный тестовый фреймворк, аналог JUnit в java.
+[Документация](https://github.com/sebastianbergmann/phpunit)
+Самый известный тестовый фреймворк, аналог JUnit в java.
 
-   Пример теста на экране
+Пример теста на экране
 
-   ```php
-    final class GreeterTest extends TestCase
-    {
-        public function testGreetsWithName(): void
-        {
-            $greeter = new Greeter;
-    
-            $greeting = $greeter->greet('Alice');
-    
-            $this->assertSame('Hello, Alice!', $greeting);
-        }
-    }
-    ```
+```php
+ final class GreeterTest extends TestCase
+ {
+     public function testGreetsWithName(): void
+     {
+         $greeter = new Greeter;
+ 
+         $greeting = $greeter->greet('Alice');
+ 
+         $this->assertSame('Hello, Alice!', $greeting);
+     }
+ }
+```
 
 Предоставляет функциональность assert, code coverage, mocks, группировка тестов, отчеты
 
-2. [Faker](https://github.com/fzaninotto/Faker)
+### 2. Faker
 
-   Библиотека для генерации тестовых данных.
+[Документация](https://github.com/fzaninotto/Faker)
 
-   Пример
-    ```php
-    <?php
-    // use the factory to create a Faker\Generator instance
-    $faker = Faker\Factory::create();
-    
-    // generate data by accessing properties
-    echo $faker->name;
-      // 'Lucy Cechtelar';
-    echo $faker->address;
-      // "426 Jordy Lodge
-      // Cartwrightshire, SC 88120-6700"
-    echo $faker->text;
-      // Dolores sit sint laboriosam dolorem culpa et autem. Beatae nam sunt fugit
-      // et sit et mollitia sed.
-      // Fuga deserunt tempora facere magni omnis. Omnis quia temporibus laudantium
-      // sit minima sint.
-    ```
-   Библиотека предоставляет очень богатое АПИ, сгенерировать можно чуть ли не все на свете
-   например что-то такое
+Библиотека для генерации тестовых данных.
 
-   ```php
-    <?php
-    
-    // Generates a random AVS13/AHV13 social security number
-    echo $faker->avs13; // "756.1234.5678.97"
-    ```
+Пример
 
-   Плюс можно генерировать на разных языках
+ ```php
+ <?php
+ // use the factory to create a Faker\Generator instance
+ $faker = Faker\Factory::create();
+ 
+ // generate data by accessing properties
+ echo $faker->name;
+   // 'Lucy Cechtelar';
+ echo $faker->address;
+   // "426 Jordy Lodge
+   // Cartwrightshire, SC 88120-6700"
+ echo $faker->text;
+   // Dolores sit sint laboriosam dolorem culpa et autem. Beatae nam sunt fugit
+   // et sit et mollitia sed.
+   // Fuga deserunt tempora facere magni omnis. Omnis quia temporibus laudantium
+   // sit minima sint.
+ ```
 
-3. [Sendstruck](https://github.com/zenstruck/foundry)
+Библиотека предоставляет очень богатое АПИ, сгенерировать можно чуть ли не все на свете
+например что-то такое
 
-   Фабрики (используются в symfony, в laravel например свой пакет) для того чтобы легко сгенерировать много записей в бд
+```php
+ <?php
+ 
+ // Generates a random AVS13/AHV13 social security number
+ echo $faker->avs13; // "756.1234.5678.97"
+ ```
 
-   выглядит как
-    ```php
-    <?php
-    
-    declare(strict_types=1);
-    
-    namespace App\Tests\Factory;
-    
-    use DateTimeImmutable;
-    use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
-    
-    /**
-     * @extends PersistentProxyObjectFactory<Artifact>
-     */
-    class ArtifactFactory extends PersistentProxyObjectFactory
-    {
-        public static function class(): string
-        {
-            return Artifact::class;
-        }
-    
-        protected function defaults(): array|callable
-        {
-            return [
-                'name' => self::faker()->slug(),
-                'type' => self::faker()->randomElement([Artifact::TYPE_FOLDER, Artifact::TYPE_ASSET]),
-                'createdAt' => DateTimeImmutable::createFromMutable(self::faker()->dateTime()),
-                'updatedAt' => DateTimeImmutable::createFromMutable(self::faker()->dateTime()),
-            ];
-        }
-    }
-    
-    ```
-   и используется как `ArtifactFactory::createOne();` например
+Плюс можно генерировать на разных языках
 
-4. [Fixtures](https://github.com/doctrine/data-fixtures)
+### 3. Sendstruck
 
-   Фикстуры (для доктрины). в laravel используются seeder'ы
-   выглядит как
-    ```php
-    <?php
-    
-    namespace MyDataFixtures;
-    
-    use Doctrine\Common\DataFixtures\FixtureInterface;
-    use Doctrine\Persistence\ObjectManager;
-    
-    class UserDataLoader implements FixtureInterface
-    {
-        public function load(ObjectManager $manager): void
-        {
-            $user = new User();
-            $user->setUsername('jwage');
-            $user->setPassword('test');
-    
-            $manager->persist($user);
-            $manager->flush();
-        }
-    }
-    ```
+[Документация](https://github.com/zenstruck/foundry)
 
-   И запускается консольной командой
+Фабрики (используются в symfony, в laravel это factory + seeder) для того чтобы легко сгенерировать много записей в бд
 
-5. [Infection](https://infection.github.io/)
+Пример
 
-   Мутационное тестирование.
+```php
+<?php
 
-    ```php
-    public function hasErrors(): bool
-    { 
-        return count($this->errors) >= 0; // было
-        return count($this->errors) > 0; // мутировало
-    }
-    ```
+declare(strict_types=1);
 
-   И такой мутант может выжить, если ни один из ваших тестов не учитывает ситуацию с нулем
+namespace App\Tests\Factory;
 
-6. [Pest](https://github.com/pestphp/pest)
+use DateTimeImmutable;
+use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
-   Тестовый фреймворк, аналогичный PHPUnit, но им я не пользовался
-   пример кода
-    ```php
-    it('performs sums', function () {
-       $result = sum(1, 2);
-     
-       expect($result)->toBe(3);
-    });
-    ```
+/**
+* @extends PersistentProxyObjectFactory<Artifact>
+*/
+class ArtifactFactory extends PersistentProxyObjectFactory
+{
+  public static function class(): string
+  {
+      return Artifact::class;
+  }
 
-   ![img_3.png](img_3.png)
+  protected function defaults(): array|callable
+  {
+      return [
+          'name' => self::faker()->slug(),
+          'type' => self::faker()->randomElement([Artifact::TYPE_FOLDER, Artifact::TYPE_ASSET]),
+          'createdAt' => DateTimeImmutable::createFromMutable(self::faker()->dateTime()),
+          'updatedAt' => DateTimeImmutable::createFromMutable(self::faker()->dateTime()),
+      ];
+  }
+}
 
-7. [Codeception](https://github.com/Codeception/Codeception)
+```
 
-   Надстройка над phpunit использующая синтаксис для BDD. на мой взгляд стоит использовать только если у вас server side rendering.
-   Пример кода
-    ```php
-    $I->amOnPage('/');
-    $I->click('Pages');
-    $I->click('New');
-    $I->see('New Page');
-    $I->submitForm('form#new_page', ['title' => 'Movie Review']);
-    $I->see('page created'); // notice generated
-    $I->see('Movie Review','h1'); // head of page of is our title
-    $I->seeInCurrentUrl('pages/movie-review'); // slug is generated
-    $I->seeInDatabase('pages', ['title' => 'Movie Review']); // data is stored in database
-    ```
+И используется в тестах, например как `ArtifactFactory::createOne();`
 
----
+### 4. Fixtures
 
-**Unit vs Интеграционные тесты**
+[Документация](https://github.com/doctrine/data-fixtures)
+
+Фикстуры (для doctrine). В laravel аналог - seeder'ы. Используется в основном для локальной разработки / дев окружений, чтоб заполнить систему тестовыми данными и посмотреть как все работает, не создавая записи руками.
+
+Пример
+
+```php
+<?php
+
+namespace MyDataFixtures;
+
+use Doctrine\Common\DataFixtures\FixtureInterface;
+use Doctrine\Persistence\ObjectManager;
+
+class UserDataLoader implements FixtureInterface
+{
+  public function load(ObjectManager $manager): void
+  {
+      $user = new User();
+      $user->setUsername('jwage');
+      $user->setPassword('test');
+
+      $manager->persist($user);
+      $manager->flush();
+  }
+}
+```
+
+И запускается консольной командой
+
+### 5. Infection
+
+[Документация](https://infection.github.io/)
+
+Мутационное тестирование. Покрытие строк кода тестами не дает гарантий, что вы действительно проверили все corner case's этой строки (яркий пример - тернарный оператор, где 2 исхода в одной строке)
+
+Infection в рантайме изменяет код, генерируя мутантов, например
+
+```php
+public function hasErrors(): bool
+{ 
+  return count($this->errors) >= 0; // было
+  return count($this->errors) > 0; // мутировало
+}
+```
+
+И прогоняет ваши тесты на измененном коде
+
+Подобный мутант может выжить, если ни один из ваших тестов не учитывает ситуацию с нулем
+
+Соответственно, мутационные тесты будут выполнятся в разы дольше обычных. На мой взгляд имеет смысл использовать для библиотек, или же для проектов написанных в DDD, где довольно дешево прогнать все тесты (не нужно соединение с бд, http запросы и тп)  
+
+### 6. Pest
+
+[Документация](https://github.com/pestphp/pest)
+
+Тестовый фреймворк, аналогичный PHPUnit. Ни разу не встречал его в проектах, но весьма популярен, судя по гитхабу
+
+Пример
+```php
+it('performs sums', function () {
+ $result = sum(1, 2);
+
+ expect($result)->toBe(3);
+});
+```
+
+![img_3.png](img_3.png)
+
+### 7. Codeception
+
+[Документация](https://github.com/Codeception/Codeception)
+
+Надстройка над phpunit использующая синтаксис для BDD. на мой взгляд стоит использовать только если у вас server side rendering.
+
+Пример
+
+```php
+$I->amOnPage('/');
+$I->click('Pages');
+$I->click('New');
+$I->see('New Page');
+$I->submitForm('form#new_page', ['title' => 'Movie Review']);
+$I->see('page created'); // notice generated
+$I->see('Movie Review','h1'); // head of page of is our title
+$I->seeInCurrentUrl('pages/movie-review'); // slug is generated
+$I->seeInDatabase('pages', ['title' => 'Movie Review']); // data is stored in database
+```
+
+## Unit vs Интеграционные тесты
 
 Как вы уже могли заметить по примерам кода, есть разные уровни тестов
 
@@ -285,6 +334,7 @@
 Однако времена изменились, и отношение самого Kent Beck'a к тестированию тоже:
 
 ![img_1.png](img_1.png)
+
 Здесь он говорит, что ему платят за написание кода, а не тестов,
 поэтому он предпочитает писать те тесты,
 которые покроют максимум строк кода при минимуме строк теста - а это интеграционные
@@ -293,22 +343,24 @@
 
 Ведь ошибка может закрасться на уровень Application/Infrastructure
 
-Вдобавок интеграционные тесты, которые именно совершают запрос на endpoint наиболее устойчивы к рефакторингу - они работают с системой как с черным ящиком,
-поэтому если вы переименовали класс / метод, изменили число аргументов или еще что-то - это никак не скажется на тесте,
-и это хорошо, потому что поддерживать кроме кода еще и тесты бывает грустно,
-и порой я был свидетелем как тесты после рефакторинга кода приходили в такую негодность что их просто выкидывали
-это большой камень в огород Mockist testing, о чем мы поговорим далее
+Вдобавок, интеграционные тесты (которые именно совершают запрос на endpoint) наиболее устойчивы к рефакторингу. 
+
+Они работают с системой как с черным ящиком, поэтому если вы переименовали класс / метод, изменили число аргументов или еще что-то - это никак не скажется на тесте.
+
+Это хорошо, потому что поддерживать кроме кода еще и тесты бывает грустно, 
+и порой я был свидетелем как тесты после рефакторинга кода приходили в такую негодность что их просто выкидывали.
+
+Это большой камень в огород Mockist testing, о чем мы поговорим далее
 
 Однако из-за того что интеграционные тесты тестируют взаимодействие буквально сотен классов, вы никогда не покроете все test cases: здесь статья на эту тему
 [Integrated Tests Are a Scam](https://blog.thecodewhisperer.com/permalink/integrated-tests-are-a-scam).
 
 ![img_2.png](img_2.png)
 
+## Stubs vs Mocks
 
----
-
-**Stubs vs Mocks**
 Мы затронули mock'и. часто на собесах спрашивают отличие Stub vs Mock (есть даже статья на эту тему от Мартина Фаулера) [Mocks Aren't Stubs](https://martinfowler.com/articles/mocksArentStubs.html)
+
 Начнем с того, что и Моки и Стабы лишь 2 из 5  Test doubles  выделенных Gerard Meszaros в его книге 2009 года xUnit Test Patterns Refactoring Test Code
 
 1. Dummy
@@ -373,13 +425,14 @@ final class CoreStorageServiceStub extends CoreStorageService
 }
 
 ```
+
 4. Spies
 
 Это как Fake, только кроме имплементации контракта он еще и сохраняет в себе какую-то информацию о своей работе.
 
 Например у `InMemoryLogger` можно вызвать `getLogs()` чтобы увидеть, какие логи он писал.
 
-или у InMemoryMailer узнать сколько писем было отправлено
+Или у InMemoryMailer узнать сколько писем было отправлено
 
 ```php
 <?php
@@ -451,6 +504,7 @@ final class InMemoryLogger implements LoggerInterface
 }
 
 ```
+
 5. Mocks
 
 Стоят особняком, так как это объекты, о поведении которых можно делать assert'ы.
@@ -478,9 +532,8 @@ final class InMemoryLogger implements LoggerInterface
 
 [Classical vs. Mockist Testing](https://martinfowler.com/articles/mocksArentStubs.html#ClassicalAndMockistTesting).
 
----
+## TDD
 
-**Блок 5: TDD и метрики**
 Обычно сначала пишут код, а потом не пишут тесты
 
 Реже бывает, что тесты пишут
@@ -497,7 +550,6 @@ final class InMemoryLogger implements LoggerInterface
 
 потом вы рефакторите свой код, и готово - повторять пока фича не будет сделана
 
-
 По моему опыту этот подход применим только если у вас есть четкое понимание АПИ - вы знаете что должно приходить и что должно отдаваться в ответ.
 Например вы пишете decryptor - подали одни байты, получили другие, сравнили с ожидаемыми.
 Или ваш аналитик пишет в вашей задаче не просто "сделай чтоб хорошо было", а прям описывает АПИ как в Сваггере
@@ -505,11 +557,11 @@ final class InMemoryLogger implements LoggerInterface
 Если же вы пишете обычные CRUDы то часто там непонятно какие поля будут нужны, сколько их, как будут называться и тп,
 то есть проще во время разработки попробовать так и этак, и выбрать подходящий вариант, а потом уже покрыть тестами
 
+## AAA-паттерн
 
 В некоторых примерах вы могли видеть повторяющиеся комментарии вида //arrange //act //assert. Это так называемый triple A pattern,
 помогающий явно структурировать тесты, и тестировать в одном методе только один кейс, не все подряд
 
-**AAA-паттерн**:
 ```php
 // Arrange
 $user = User::factory()->create();
@@ -533,17 +585,14 @@ $updatedAt = array_map(
 self::assertSame(['2024-12-13T10:00:00+00:00', '2024-12-12T10:00:00+00:00'], $updatedAt);
 ```
 
-
-**Метрики**:
+## Метрики
 - **Code Coverage**: Не гарантирует отсутствие багов. Яркий пример - тернарный оператор
   ![img_4.png](img_4.png)
 - **Mutation Score** ([Infection](https://infection.github.io/)): "Убивайте" мутантов в коде.
   ![img_5.png](img_5.png)
----
 
-**Итоги и советы**
+## Итоги и советы
 - Тесты экономят время в долгосрочной перспективе. на поддержку, на устранение багов, на onboarding
 - Лучше писать интеграционные тесты вида "совершить запрос на endpoint, получить ответ"
 - Лучше писать Stub/Spy, чем Mock
 - Не доверяйте покрытию строк, доверяйте MSI
----

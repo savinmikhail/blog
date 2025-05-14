@@ -1,93 +1,58 @@
+## Как сделать modulith в symfony?
 
-`src/YourModule/di.php`
+Modulith — это архитектурный подход, при котором приложение остаётся монолитом на уровне деплоя, но внутри него код разделён на независимые модули с чёткими интерфейсами и ограниченными зонами ответственности.
 
-```php
-<?php
-
-declare(strict_types=1);
-
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-
-use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
-
-return static function (ContainerConfigurator $container, ContainerBuilder $containerBuilder): void {
-    $services = $container->services();
-    $services
-        ->defaults()
-        ->autowire()
-        ->autoconfigure();
-
-    $container->import(resource: __DIR__ . '/Resources/config/notifications.yaml');
-
-    $services->alias(id: ArtifactUploadContextBuilderInterface::class, referencedId: ArtifactUploadContextBuilder::class);
-
-    $services
-        ->set(id: ArtifactNotificationsConfig::class)
-        ->factory(factory: [null, 'create'])
-        ->arg(key: '$parameters', value: param('artifact_notifications'));
-};
+```shell
+├── src
+   ├── Product
+   │   ├── Command
+   │   ├── Controller
+   │   ├── Doctrine
+   │   ├── Entity
+   │   ├── Message
+   │   └── MessageHandler
+   ├── User
+   │    ├── Controller
+   │    └── Entity
+   └── Kernel.php
 ```
 
-`src/YourModule/di_test.php`
+Traditional Symfony architecture:
+```shell
+├── src
+   ├── Command
+   ├── Controller
+   ├── Doctrine
+   ├── Entity
+   ├── Message
+   ├── MessageHandler
+   └── Kernel.php
+```
 
-```php
-<?php
+The key difference is that in Modulith, each module (like Product, User) contains its own complete set of components, while in traditional Symfony architecture, all components are grouped by their type across the entire application.
 
-declare(strict_types=1);
-
-use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-
-return static function (ContainerConfigurator $container): void {
-    $services = $container->services();
-    $services
-        ->defaults()
-        ->autowire()
-        ->autoconfigure();
-
-    $services->set(id: PackageProxyService::class)->arg(key: '$ttl', value: 0);
-};
+```shell
+├── src
+   ├── Product
+   │   ├── Command
+   │   ├── Controller
+   │   ├── Doctrine
+   │   ├── Entity
+   │   ├── Message
+   │   └── MessageHandler
+   ├── User
+   │    ├── Controller
+   │    └── Entity
+   └── Kernel.php
 
 ```
 
-`src/YourModule/doctrine.php`
+Часто самая большая сложность возникает у людей при конфигурации модулей. Ничто нам не мешает запихать всю конфигурацию в один общий файл, например `config/services.yaml`, но из-за этого файл быстро станет раздуваться, что снизит его поддерживаемость и в нем будет единая точка связности модулей
 
-```php
-<?php
+Поэтому конфигурацию модулей лучше выносить в сами модули
 
-declare(strict_types=1);
+Чтобы собрать все маленькие конфиг файлы из модулей, надо сконфигурировать ядро симфы сделать это:
 
-use Symfony\Config\DoctrineConfig;
-
-return static function (DoctrineConfig $doctrine): void {
-    $emDefault = $doctrine->orm()->entityManager('default');
-
-    $emDefault->autoMapping(true);
-    $emDefault->mapping('Artifact')
-        ->type('attribute')
-        ->dir(__DIR__ . '/Entity')
-        ->isBundle(false)
-        ->prefix('App\Artifact\Entity')
-        ->alias('App');
-};
-```
-
-`src/YourModule/routing.php`
-
-```php
-<?php
-
-declare(strict_types=1);
-
-use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
-
-return static function (RoutingConfigurator $routes): void {
-    $routes
-        ->import(resource: './Controller/', type: 'attribute')
-        ->prefix(prefix: '/api');
-};
-
-```
 
 `src/Kernel.php`
 
@@ -121,8 +86,6 @@ class Kernel extends BaseKernel
         $srcDir = $this->getProjectDir() . '/src';
         $container->import(resource: $srcDir . '/**/{di}.php');
         $container->import(resource: $srcDir . "/**/{di}_{$this->environment}.php");
-
-        $container->import(resource: $configDir . '/app_version.php');
     }
 
     private function configureRoutes(RoutingConfigurator $routes): void
@@ -137,6 +100,141 @@ class Kernel extends BaseKernel
 }
 
 ```
+
+Как видно здесь мы подключаем файлы `di.php` в зависимости от окружения. Эти файлы отвечают за регистрацию сервисов в симфе и за какие-то частные настройки модуля
+
+Поэтому важно сказать в основном конфиг файле не мешать нам с кастомной загрузкой:
+
+`config/services.yaml`
+
+```yaml
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Kernel.php'
+            - '../src/*/{di,di_test,di_dev,routing,doctrine,functions}.php'
+```
+
+А метод `configureRoutes` ответственен за нахождение конфиг файлов регистрации роутов
+
+Тогда основной конфиг файл будет выглядеть довольно минималистично
+
+`config/routes.yaml`
+
+```yaml
+redirect:
+  path: /
+  controller: Symfony\Bundle\FrameworkBundle\Controller\RedirectController
+  defaults:
+    path: /api/docs
+```
+
+Пример конфигурации DI в модуле:
+
+`src/YourModule/di.php`
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+
+use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
+
+return static function (ContainerConfigurator $container, ContainerBuilder $containerBuilder): void {
+    $services = $container->services();
+    $services
+        ->defaults()
+        ->autowire()
+        ->autoconfigure();
+
+    $container->import(resource: __DIR__ . '/Resources/config/notifications.yaml');
+
+    $services->alias(id: ArtifactUploadContextBuilderInterface::class, referencedId: ArtifactUploadContextBuilder::class);
+
+    $services
+        ->set(id: ArtifactNotificationsConfig::class)
+        ->factory(factory: [null, 'create'])
+        ->arg(key: '$parameters', value: param('artifact_notifications'));
+};
+```
+
+Файлы с суффиксом окружения будут загружены в зависимости от ENV переменной среды окружения. Например для тестов я хочу выключить кеширование, или привязать стаб вместо основной реализации:
+
+`src/YourModule/di_test.php`
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+
+return static function (ContainerConfigurator $container): void {
+    $services = $container->services();
+    $services
+        ->defaults()
+        ->autowire()
+        ->autoconfigure();
+
+    $services->set(id: PackageProxyService::class)->arg(key: '$ttl', value: 0);
+};
+
+```
+
+Пример регистрации роутов:
+
+`src/YourModule/routing.php`
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
+
+return static function (RoutingConfigurator $routes): void {
+    $routes
+        ->import(resource: './Controller/', type: 'attribute')
+        ->prefix(prefix: '/api');
+};
+
+```
+
+Этот файл практически всегда выглядит одинаково и просто копипастится
+
+Для регистрации сущностей доктрины нужен отдельный конфиг:
+
+`src/YourModule/doctrine.php`
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Symfony\Config\DoctrineConfig;
+
+return static function (DoctrineConfig $doctrine): void {
+    $emDefault = $doctrine->orm()->entityManager('default');
+
+    $emDefault->autoMapping(true);
+    $emDefault->mapping('Artifact')
+        ->type('attribute')
+        ->dir(__DIR__ . '/Entity')
+        ->isBundle(false)
+        ->prefix('App\Artifact\Entity')
+        ->alias('App');
+};
+```
+
+Для этого мы должны пояснить симфе как найти и зарегистрирвать эти файлы:
 
 `config/packages/doctrine_module_mapping.php`
 
@@ -165,6 +263,8 @@ return static function (DoctrineConfig $doctrine): void {
 
 ```
 
+Я недолюбливаю Util классы с кучей статических методов, поэтому всякие микрофункции которые особо не отнести к какому-то классу, или вам не хочется создавать и инжектить всюду класс содержащий один метод, стоит выделять просто в неймспейс своего модуля:
+
 `src/YourModule/functions.php`
 
 ```php
@@ -184,7 +284,9 @@ function getVendorPackageName(string $vendor, string $package): string
 }
 ```
 
-В вашем `composer.json` добавьте
+Только надо сказать композеру как найти эти функции:
+
+`composer.json`
 
 ```json
 {
@@ -199,9 +301,9 @@ function getVendorPackageName(string $vendor, string $package): string
 }
 ```
 
-Не забудь запустить `composer dump`, и сбросить кеш psalm/phpstan. После добавления новых конфиг файлов стоит запустить `bin/console cache:clear`
+Не забудь запустить `composer dump`, и сбросить кеш psalm/phpstan. После добавления новых конфиг-файлов стоит запустить `bin/console cache:clear` чтобы симфа нашла их и обновилась
 
-Так же как код бьется на модули (namespace'ы), так же имеет смысл бить базу данных на схемы через аттрибут
+Так же как код бьется на модули (namespace'ы), так же имеет смысл бить базу данных на схемы. Это очень легко сделать:
 
 ```php
 #[ORM\Table(name: 'notification_settings', schema: 'notification')]
@@ -209,3 +311,5 @@ class NotificationSettings
 ```
 
 Тогда открывая БД, не будет пугающего списка на 800 таблиц вперемешку
+
+Да, какие-то схемы будут содержать одну таблицу, какие-то 5, но мне лично куда проще ориентироваться в бд имея эти группы в виде схем. Плюс гипотетически это будет легче распиливаться на сервисы, если понадобиться, и можно управлять доступами на схему, опять же, если понадобиться.

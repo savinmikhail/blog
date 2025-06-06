@@ -1,4 +1,4 @@
-https://github.com/savinmikhail/AddNamedArgumentsRector
+Ссылка на репозиторий https://github.com/savinmikhail/AddNamedArgumentsRector
 
 Summary:
 - как писать правило для ректора

@@ -1,124 +1,6 @@
-```php
-<?php
-
-namespace App\Request;
-
-use Symfony\Component\Validator\Constraints as Assert;
-
-final class CreateUserRequest
-{
-    #[Assert\NotBlank(message: 'Email is required')]
-    #[Assert\Email]
-    public string $email;
-
-    #[Assert\NotBlank(message: 'Password cannot be empty')]
-    #[Assert\Length(min: 8, minMessage: 'Password must be at least 8 characters long')]
-    public string $password;
-}
-
-```
 
 ```php
 <?php
-
-namespace App\Controller;
-
-use App\Request\CreateUserRequest;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
-
-final class UserController extends AbstractController
-{
-    #[Route('/users', methods: ['POST'])]
-    public function create(#[MapRequestPayload] CreateUserRequest $payload): JsonResponse
-    {
-        // Here you already have a validated DTO.
-        // Business logic starts clean.
-        return $this->json([
-            'email' => $payload->email,
-            'status' => 'user created',
-        ]);
-    }
-}
-
-```
-
-```php
-<?php
-
-/*
- * This file is part of the Symfony package.
- *
- * (c) Fabien Potencier <fabien@symfony.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
-namespace Symfony\Component\HttpKernel\Attribute;
-
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Controller\ArgumentResolver\RequestPayloadValueResolver;
-use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
-use Symfony\Component\Validator\Constraints\GroupSequence;
-
-/**
- * Controller parameter tag to map the query string of the request to typed object and validate it.
- *
- * @author Konstantin Myakshin <molodchick@gmail.com>
- */
-#[\Attribute(\Attribute::TARGET_PARAMETER)]
-class MapQueryString extends ValueResolver
-{
-    public ArgumentMetadata $metadata;
-
-    /**
-     * @param array<string, mixed>                    $serializationContext       The serialization context to use when deserializing the query string
-     * @param string|GroupSequence|array<string>|null $validationGroups           The validation groups to use when validating the query string mapping
-     * @param class-string                            $resolver                   The class name of the resolver to use
-     * @param int                                     $validationFailedStatusCode The HTTP code to return if the validation fails
-     */
-    public function __construct(
-        public readonly array $serializationContext = [],
-        public readonly string|GroupSequence|array|null $validationGroups = null,
-        string $resolver = RequestPayloadValueResolver::class,
-        public readonly int $validationFailedStatusCode = Response::HTTP_NOT_FOUND,
-        public readonly ?string $key = null,
-    ) {
-        parent::__construct($resolver);
-    }
-}
-
-```
-
-```json
-{
-  "type": "https://symfony.com/errors/validation",
-  "title": "Validation Failed",
-  "status": 422,
-  "detail": "name: Значение слишком короткое. Должно быть равно 2 символам или больше.",
-  "violations": [
-    {
-      "propertyPath": "name",
-      "title": "Значение слишком короткое. Должно быть равно 2 символам или больше."
-    }
-  ]
-}
-```
-
-```php
-<?php
-namespace App\Controller;
-
-use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AuthController extends AbstractController
 {
@@ -144,14 +26,7 @@ class AuthController extends AbstractController
         if ($validationError) {
             return $this->json(['error' => $validationError['error']], $validationError['code']);
         }
-
-        $user = $em->getRepository(User::class)->findOneBy(['email' => $email]);
-        if (!$user || !$passwordHasher->isPasswordValid($user, $password)) {
-            return $this->json(['error' => 'Invalid credentials'], Response::HTTP_UNAUTHORIZED);
-        }
-
-        // Здесь можно добавить генерацию JWT или сессионного токена
-        return $this->json(['message' => 'Login successful']);
+        /* ... */
     }
 }
 
@@ -171,10 +46,6 @@ final class RequestDtoResolver implements ArgumentValueResolverInterface
             $content = json_encode($request->request->all());
         }
 
-        if (empty($content)) {
-            throw new BadRequestHttpException('Empty request body');
-        }
-
         $dto = $this->serializer->deserialize($content, $dtoClass, 'json');
 
         $errors = $this->validator->validate($dto);
@@ -192,6 +63,7 @@ final class RequestDtoResolver implements ArgumentValueResolverInterface
 }
 
 ```
+
 
 ```php
 // ...
@@ -220,5 +92,80 @@ public function author(ValidatorInterface $validator): Response
     }
 
     return new Response('The author is valid! Yes!');
+}
+```
+
+```php
+<?php
+
+namespace App\Request;
+
+use Symfony\Component\Validator\Constraints as Assert;
+
+final class CreateUserRequest
+{
+    #[Assert\NotBlank(message: 'Email is required')]
+    #[Assert\Email]
+    public string $email;
+
+    #[Assert\NotBlank(message: 'Password cannot be empty')]
+    #[Assert\Length(min: 8, minMessage: 'Password must be at least 8 characters long')]
+    public string $password;
+}
+
+```
+
+```php
+<?php
+
+final class UserController extends AbstractController
+{
+    #[Route('/users', methods: ['POST'])]
+    public function create(#[MapRequestPayload] CreateUserRequest $payload): JsonResponse
+    {
+        // Here you already have a validated DTO.
+        // Business logic starts clean.
+        return $this->json([
+            'email' => $payload->email,
+            'status' => 'user created',
+        ]);
+    }
+}
+
+```
+
+```php
+<?php
+
+#[\Attribute(\Attribute::TARGET_PARAMETER)]
+class MapQueryString extends ValueResolver
+{
+    public ArgumentMetadata $metadata;
+
+    public function __construct(
+        public readonly array $serializationContext = [],
+        public readonly string|GroupSequence|array|null $validationGroups = null,
+        string $resolver = RequestPayloadValueResolver::class,
+        public readonly int $validationFailedStatusCode = Response::HTTP_NOT_FOUND,
+        public readonly ?string $key = null,
+    ) {
+        parent::__construct($resolver);
+    }
+}
+
+```
+
+```json
+{
+  "type": "https://symfony.com/errors/validation",
+  "title": "Validation Failed",
+  "status": 422,
+  "detail": "name: Значение слишком короткое. Должно быть равно 2 символам или больше.",
+  "violations": [
+    {
+      "propertyPath": "name",
+      "title": "Значение слишком короткое. Должно быть равно 2 символам или больше."
+    }
+  ]
 }
 ```

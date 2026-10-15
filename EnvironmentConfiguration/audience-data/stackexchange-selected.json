@@ -1,0 +1,254 @@
+{
+  "observed_at": "2026-10-16",
+  "method": "Purposeful selected-question API snapshot; lifetime views, not demand ranking",
+  "items": [
+    {
+      "question_id": 12461484,
+      "title": "Is it secure to store passwords as environment variables (rather than as plain text) in config files?",
+      "link": "https://stackoverflow.com/questions/12461484/is-it-secure-to-store-passwords-as-environment-variables-rather-than-as-plain-t",
+      "view_count": 197266,
+      "score": 216,
+      "answer_count": 10,
+      "creation_date": 1347892245,
+      "last_activity_date": 1777310628,
+      "tags": [
+        "ruby-on-rails",
+        "django",
+        "security",
+        "passwords",
+        "environment-variables"
+      ]
+    },
+    {
+      "question_id": 29377853,
+      "title": "How can I use environment variables in docker-compose?",
+      "link": "https://stackoverflow.com/questions/29377853/how-can-i-use-environment-variables-in-docker-compose",
+      "view_count": 1109151,
+      "score": 558,
+      "answer_count": 21,
+      "creation_date": 1427833391,
+      "last_activity_date": 1749546064,
+      "tags": [
+        "docker",
+        "docker-compose"
+      ]
+    },
+    {
+      "question_id": 42335016,
+      "title": "dotenv file is not loading environment variables",
+      "link": "https://stackoverflow.com/questions/42335016/dotenv-file-is-not-loading-environment-variables",
+      "view_count": 481495,
+      "score": 198,
+      "answer_count": 32,
+      "creation_date": 1487553326,
+      "last_activity_date": 1742885204,
+      "tags": [
+        "javascript",
+        "node.js",
+        "dotenv"
+      ]
+    },
+    {
+      "question_id": 79305196,
+      "title": "Docker compose file is not using .env variables",
+      "link": "https://stackoverflow.com/questions/79305196/docker-compose-file-is-not-using-env-variables",
+      "view_count": 563,
+      "score": 0,
+      "answer_count": 1,
+      "creation_date": 1735031318,
+      "last_activity_date": 1735037694,
+      "tags": [
+        "docker",
+        "docker-compose",
+        "environment-variables"
+      ]
+    },
+    {
+      "question_id": 68731242,
+      "title": "How do you load environment variables from .env and .env.local with dotenv?",
+      "link": "https://stackoverflow.com/questions/68731242/how-do-you-load-environment-variables-from-env-and-env-local-with-dotenv",
+      "view_count": 67394,
+      "score": 39,
+      "answer_count": 4,
+      "creation_date": 1628616822,
+      "last_activity_date": 1728743938,
+      "tags": [
+        "node.js",
+        "npm",
+        "dotenv"
+      ]
+    },
+    {
+      "question_id": 48495663,
+      "title": "Docker-compose env file not working",
+      "link": "https://stackoverflow.com/questions/48495663/docker-compose-env-file-not-working",
+      "view_count": 174165,
+      "score": 114,
+      "answer_count": 13,
+      "creation_date": 1517207972,
+      "last_activity_date": 1709738642,
+      "tags": [
+        "environment-variables",
+        "docker-compose",
+        "external"
+      ]
+    },
+    {
+      "question_id": 30696930,
+      "title": "How to hide .env file from Github",
+      "link": "https://stackoverflow.com/questions/30696930/how-to-hide-env-file-from-github",
+      "view_count": 163011,
+      "score": 59,
+      "answer_count": 10,
+      "creation_date": 1433701205,
+      "last_activity_date": 1708874833,
+      "tags": [
+        "git",
+        "gitignore"
+      ]
+    },
+    {
+      "question_id": 48699820,
+      "title": "How do I hide an API key in Create React App?",
+      "link": "https://stackoverflow.com/questions/48699820/how-do-i-hide-an-api-key-in-create-react-app",
+      "view_count": 248890,
+      "score": 174,
+      "answer_count": 13,
+      "creation_date": 1518157028,
+      "last_activity_date": 1708020947,
+      "tags": [
+        "reactjs",
+        "github",
+        "create-react-app",
+        "api-key"
+      ]
+    },
+    {
+      "question_id": 43243732,
+      "title": "Laravel - env() always returns null",
+      "link": "https://stackoverflow.com/questions/43243732/laravel-env-always-returns-null",
+      "view_count": 129960,
+      "score": 160,
+      "answer_count": 13,
+      "creation_date": 1491438459,
+      "last_activity_date": 1697135231,
+      "tags": [
+        "php",
+        "laravel",
+        "environment-variables",
+        "phpdotenv"
+      ]
+    },
+    {
+      "question_id": 58317965,
+      "title": "Symfony 4 Dotenv escape special characters",
+      "link": "https://stackoverflow.com/questions/58317965/symfony-4-dotenv-escape-special-characters",
+      "view_count": 13250,
+      "score": 14,
+      "answer_count": 2,
+      "creation_date": 1570693890,
+      "last_activity_date": 1671466362,
+      "tags": [
+        "symfony",
+        "escaping",
+        "symfony4",
+        "dotenv"
+      ]
+    },
+    {
+      "question_id": 72832926,
+      "title": "How to make docker-compose &quot;.env&quot; file take precedence over shell env vars?",
+      "link": "https://stackoverflow.com/questions/72832926/how-to-make-docker-compose-env-file-take-precedence-over-shell-env-vars",
+      "view_count": 4975,
+      "score": 1,
+      "answer_count": 3,
+      "creation_date": 1656697339,
+      "last_activity_date": 1657664791,
+      "tags": [
+        "django",
+        "docker",
+        "docker-compose",
+        "environment-variables",
+        "env-file"
+      ]
+    },
+    {
+      "question_id": 69240621,
+      "title": "use $ sign in .env file values in nodejs",
+      "link": "https://stackoverflow.com/questions/69240621/use-sign-in-env-file-values-in-nodejs",
+      "view_count": 2493,
+      "score": 1,
+      "answer_count": 1,
+      "creation_date": 1632030314,
+      "last_activity_date": 1653479617,
+      "tags": [
+        "node.js",
+        "dotenv"
+      ]
+    },
+    {
+      "question_id": 71538752,
+      "title": "When are quotes needed in .env file?",
+      "link": "https://stackoverflow.com/questions/71538752/when-are-quotes-needed-in-env-file",
+      "view_count": 62532,
+      "score": 54,
+      "answer_count": 1,
+      "creation_date": 1647698372,
+      "last_activity_date": 1647699439,
+      "tags": [
+        "php",
+        "linux",
+        "symfony",
+        "environment-variables",
+        "dotenv"
+      ]
+    },
+    {
+      "question_id": 46407009,
+      "title": "How to hide .env passwords in Laravel whoops output?",
+      "link": "https://stackoverflow.com/questions/46407009/how-to-hide-env-passwords-in-laravel-whoops-output",
+      "view_count": 36543,
+      "score": 78,
+      "answer_count": 12,
+      "creation_date": 1506347871,
+      "last_activity_date": 1634684562,
+      "tags": [
+        "php",
+        "laravel",
+        "environment-variables",
+        "secret-key",
+        "whoops"
+      ]
+    },
+    {
+      "question_id": 68470931,
+      "title": "Which Symfony environment variable is available in which file (.env, .env.local, etc.)?",
+      "link": "https://stackoverflow.com/questions/68470931/which-symfony-environment-variable-is-available-in-which-file-env-env-local",
+      "view_count": 5106,
+      "score": 4,
+      "answer_count": 2,
+      "creation_date": 1626876184,
+      "last_activity_date": 1626937679,
+      "tags": [
+        "php",
+        "symfony",
+        "environment-variables"
+      ]
+    },
+    {
+      "question_id": 65484277,
+      "title": "Access env file variables in docker-compose file",
+      "link": "https://stackoverflow.com/questions/65484277/access-env-file-variables-in-docker-compose-file",
+      "view_count": 28488,
+      "score": 13,
+      "answer_count": 2,
+      "creation_date": 1609190685,
+      "last_activity_date": 1609221583,
+      "tags": [
+        "docker",
+        "docker-compose",
+        "dockerfile"
+      ]
+    }
+  ]
+}

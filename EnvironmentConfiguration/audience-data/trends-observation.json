@@ -1,0 +1,12 @@
+{
+  "observed_at": "2026-10-16",
+  "source": "Google Trends browser UI; chart accessibility table and related query links",
+  "url": "https://trends.google.com/trends/explore?date=today%205-y&q=dotenv,environment%20variables,docker%20compose%20env,docker%20secrets",
+  "filters": {"geo": "Worldwide", "period": "Past 5 years", "search_type": "Web Search", "category": "All", "term_type": "Search terms"},
+  "average_relative_index": {"dotenv": 5, "environment variables": 26, "docker compose env": 1, "docker secrets": 1},
+  "first_five_rising_related": {
+    "dotenv": ["openai python", "langchain", "openai api", "import dotenv could not be resolved", "dotenvx"],
+    "docker secrets": ["infisical", "1password", "doppler", "external secrets operator", "new york times"]
+  },
+  "limits": ["Normalized index, not monthly searches", "Purposeful comparison; terms differ in breadth", "Worldwide English terms do not estimate Russian Habr demand", "Related results contain irrelevant entries", "No causal claims or LLM leak prevalence inferred"]
+}

@@ -1,0 +1,1551 @@
+{
+  "observed_at": "2026-10-16",
+  "method": "Stack Exchange advanced search; sort=votes; first 25 per query; not exhaustive or randomized",
+  "queries": {
+    "dotenv": {
+      "has_more": true,
+      "items": [
+        {
+          "question_id": 58384179,
+          "title": "SyntaxError: Cannot use import statement outside a module",
+          "link": "https://stackoverflow.com/questions/58384179/syntaxerror-cannot-use-import-statement-outside-a-module",
+          "view_count": 1951831,
+          "score": 712,
+          "answer_count": 33,
+          "creation_date": 1571087838,
+          "last_activity_date": 1741813249,
+          "tags": [
+            "javascript",
+            "node.js",
+            "node-modules",
+            "package.json",
+            "npm-package"
+          ]
+        },
+        {
+          "question_id": 19537645,
+          "title": "How to get an environment variable value into Dockerfile during &quot;docker build&quot;?",
+          "link": "https://stackoverflow.com/questions/19537645/how-to-get-an-environment-variable-value-into-dockerfile-during-docker-build",
+          "view_count": 564578,
+          "score": 410,
+          "answer_count": 9,
+          "creation_date": 1382519763,
+          "last_activity_date": 1746519857,
+          "tags": [
+            "docker",
+            "dockerfile",
+            "docker-build"
+          ]
+        },
+        {
+          "question_id": 41546883,
+          "title": "What is the use of python-dotenv?",
+          "link": "https://stackoverflow.com/questions/41546883/what-is-the-use-of-python-dotenv",
+          "view_count": 421110,
+          "score": 229,
+          "answer_count": 7,
+          "creation_date": 1483960893,
+          "last_activity_date": 1743218758,
+          "tags": [
+            "python",
+            "environment-variables",
+            "python-dotenv"
+          ]
+        },
+        {
+          "question_id": 69554485,
+          "title": "ESLint - Error: Must use import to load ES Module",
+          "link": "https://stackoverflow.com/questions/69554485/eslint-error-must-use-import-to-load-es-module",
+          "view_count": 183036,
+          "score": 203,
+          "answer_count": 13,
+          "creation_date": 1634123685,
+          "last_activity_date": 1697997345,
+          "tags": [
+            "javascript",
+            "node.js",
+            "reactjs",
+            "eslint"
+          ]
+        },
+        {
+          "question_id": 42335016,
+          "title": "dotenv file is not loading environment variables",
+          "link": "https://stackoverflow.com/questions/42335016/dotenv-file-is-not-loading-environment-variables",
+          "view_count": 481495,
+          "score": 198,
+          "answer_count": 32,
+          "creation_date": 1487553326,
+          "last_activity_date": 1742885204,
+          "tags": [
+            "javascript",
+            "node.js",
+            "dotenv"
+          ]
+        },
+        {
+          "question_id": 53237293,
+          "title": "react evironment variables .env return undefined",
+          "link": "https://stackoverflow.com/questions/53237293/react-evironment-variables-env-return-undefined",
+          "view_count": 248680,
+          "score": 196,
+          "answer_count": 25,
+          "creation_date": 1541838664,
+          "last_activity_date": 1724249862,
+          "tags": [
+            "reactjs",
+            "undefined"
+          ]
+        },
+        {
+          "question_id": 46929196,
+          "title": "How to solve npm install throwing fsevents warning on non-MAC OS?",
+          "link": "https://stackoverflow.com/questions/46929196/how-to-solve-npm-install-throwing-fsevents-warning-on-non-mac-os",
+          "view_count": 348865,
+          "score": 185,
+          "answer_count": 23,
+          "creation_date": 1508924944,
+          "last_activity_date": 1697824747,
+          "tags": [
+            "node.js",
+            "jenkins",
+            "npm-install",
+            "fsevents"
+          ]
+        },
+        {
+          "question_id": 42182577,
+          "title": "Is it possible to use dotenv in a react project?",
+          "link": "https://stackoverflow.com/questions/42182577/is-it-possible-to-use-dotenv-in-a-react-project",
+          "view_count": 260555,
+          "score": 157,
+          "answer_count": 8,
+          "creation_date": 1486856676,
+          "last_activity_date": 1725530268,
+          "tags": [
+            "javascript",
+            "reactjs",
+            "webpack"
+          ]
+        },
+        {
+          "question_id": 55406055,
+          "title": "Toggle between multiple .env files like .env.development with node.js",
+          "link": "https://stackoverflow.com/questions/55406055/toggle-between-multiple-env-files-like-env-development-with-node-js",
+          "view_count": 194374,
+          "score": 152,
+          "answer_count": 13,
+          "creation_date": 1553803696,
+          "last_activity_date": 1752931613,
+          "tags": [
+            "node.js",
+            "express",
+            "environment-variables",
+            "dotenv"
+          ]
+        },
+        {
+          "question_id": 40322788,
+          "title": "How to overwrite incorrect TypeScript type definition installed via @types/package",
+          "link": "https://stackoverflow.com/questions/40322788/how-to-overwrite-incorrect-typescript-type-definition-installed-via-types-packa",
+          "view_count": 97305,
+          "score": 137,
+          "answer_count": 5,
+          "creation_date": 1477768935,
+          "last_activity_date": 1727269893,
+          "tags": [
+            "typescript"
+          ]
+        },
+        {
+          "question_id": 54162297,
+          "title": "Module not found: Error: Can&#39;t resolve &#39;crypto&#39;",
+          "link": "https://stackoverflow.com/questions/54162297/module-not-found-error-cant-resolve-crypto",
+          "view_count": 340400,
+          "score": 125,
+          "answer_count": 28,
+          "creation_date": 1547315263,
+          "last_activity_date": 1730528751,
+          "tags": [
+            "javascript",
+            "node.js",
+            "angular",
+            "npm",
+            "nem"
+          ]
+        },
+        {
+          "question_id": 37298215,
+          "title": "Add Favicon with React and Webpack",
+          "link": "https://stackoverflow.com/questions/37298215/add-favicon-with-react-and-webpack",
+          "view_count": 202837,
+          "score": 124,
+          "answer_count": 18,
+          "creation_date": 1463570754,
+          "last_activity_date": 1713789355,
+          "tags": [
+            "javascript",
+            "node.js",
+            "reactjs",
+            "webpack",
+            "favicon"
+          ]
+        },
+        {
+          "question_id": 50259025,
+          "title": "Using .env files for unit testing with jest",
+          "link": "https://stackoverflow.com/questions/50259025/using-env-files-for-unit-testing-with-jest",
+          "view_count": 144447,
+          "score": 117,
+          "answer_count": 12,
+          "creation_date": 1525887085,
+          "last_activity_date": 1711028763,
+          "tags": [
+            "javascript",
+            "unit-testing",
+            "environment-variables",
+            "jestjs"
+          ]
+        },
+        {
+          "question_id": 59572174,
+          "title": "no module named &#39;dotenv&#39; python 3.8",
+          "link": "https://stackoverflow.com/questions/59572174/no-module-named-dotenv-python-3-8",
+          "view_count": 363535,
+          "score": 112,
+          "answer_count": 19,
+          "creation_date": 1578015123,
+          "last_activity_date": 1751645982,
+          "tags": [
+            "python",
+            "import",
+            "module"
+          ]
+        },
+        {
+          "question_id": 63285055,
+          "title": "NestJS - How to use .env variables in main app module file for database connection",
+          "link": "https://stackoverflow.com/questions/63285055/nestjs-how-to-use-env-variables-in-main-app-module-file-for-database-connecti",
+          "view_count": 203197,
+          "score": 112,
+          "answer_count": 11,
+          "creation_date": 1596721821,
+          "last_activity_date": 1720633765,
+          "tags": [
+            "javascript",
+            "node.js",
+            "environment-variables",
+            "nestjs",
+            "dotenv"
+          ]
+        },
+        {
+          "question_id": 53558916,
+          "title": "Babel 7 - ReferenceError: regeneratorRuntime is not defined",
+          "link": "https://stackoverflow.com/questions/53558916/babel-7-referenceerror-regeneratorruntime-is-not-defined",
+          "view_count": 103547,
+          "score": 109,
+          "answer_count": 9,
+          "creation_date": 1543586142,
+          "last_activity_date": 1690274651,
+          "tags": [
+            "javascript",
+            "node.js",
+            "webpack",
+            "babeljs"
+          ]
+        },
+        {
+          "question_id": 26973484,
+          "title": "How do I setup the dotenv file in Node.js?",
+          "link": "https://stackoverflow.com/questions/26973484/how-do-i-setup-the-dotenv-file-in-node-js",
+          "view_count": 200987,
+          "score": 105,
+          "answer_count": 41,
+          "creation_date": 1416229855,
+          "last_activity_date": 1750326452,
+          "tags": [
+            "node.js",
+            "environment-variables"
+          ]
+        },
+        {
+          "question_id": 54358871,
+          "title": "How to add comments to .env file?",
+          "link": "https://stackoverflow.com/questions/54358871/how-to-add-comments-to-env-file",
+          "view_count": 84341,
+          "score": 105,
+          "answer_count": 5,
+          "creation_date": 1548389923,
+          "last_activity_date": 1732246668,
+          "tags": [
+            "node.js",
+            "dotenv"
+          ]
+        },
+        {
+          "question_id": 65408618,
+          "title": "MongooseError - Operation `users.findOne()` buffering timed out after 10000ms",
+          "link": "https://stackoverflow.com/questions/65408618/mongooseerror-operation-users-findone-buffering-timed-out-after-10000ms",
+          "view_count": 158814,
+          "score": 91,
+          "answer_count": 23,
+          "creation_date": 1608639483,
+          "last_activity_date": 1715632775,
+          "tags": [
+            "node.js",
+            "mongodb",
+            "mongoose"
+          ]
+        },
+        {
+          "question_id": 59462614,
+          "title": "How to use different .env files with nextjs?",
+          "link": "https://stackoverflow.com/questions/59462614/how-to-use-different-env-files-with-nextjs",
+          "view_count": 171209,
+          "score": 86,
+          "answer_count": 14,
+          "creation_date": 1577147640,
+          "last_activity_date": 1743690235,
+          "tags": [
+            "reactjs",
+            "environment-variables",
+            "next.js"
+          ]
+        },
+        {
+          "question_id": 42040317,
+          "title": "Cannot find module for a node js app running in a docker compose environment",
+          "link": "https://stackoverflow.com/questions/42040317/cannot-find-module-for-a-node-js-app-running-in-a-docker-compose-environment",
+          "view_count": 276089,
+          "score": 83,
+          "answer_count": 9,
+          "creation_date": 1486211057,
+          "last_activity_date": 1684741884,
+          "tags": [
+            "node.js",
+            "docker",
+            "npm",
+            "docker-compose"
+          ]
+        },
+        {
+          "question_id": 62287709,
+          "title": "Environment variable with dotenv and TypeScript",
+          "link": "https://stackoverflow.com/questions/62287709/environment-variable-with-dotenv-and-typescript",
+          "view_count": 212312,
+          "score": 78,
+          "answer_count": 15,
+          "creation_date": 1591721183,
+          "last_activity_date": 1725728447,
+          "tags": [
+            "javascript",
+            "node.js",
+            "typescript",
+            "nestjs",
+            "dotenv"
+          ]
+        },
+        {
+          "question_id": 34315274,
+          "title": "React-native : detect dev or production env",
+          "link": "https://stackoverflow.com/questions/34315274/react-native-detect-dev-or-production-env",
+          "view_count": 35083,
+          "score": 76,
+          "answer_count": 1,
+          "creation_date": 1450277933,
+          "last_activity_date": 1540929820,
+          "tags": [
+            "javascript",
+            "android",
+            "react-native"
+          ]
+        },
+        {
+          "question_id": 55038813,
+          "title": "Cannot log after tests are done in jestjs",
+          "link": "https://stackoverflow.com/questions/55038813/cannot-log-after-tests-are-done-in-jestjs",
+          "view_count": 122901,
+          "score": 76,
+          "answer_count": 11,
+          "creation_date": 1551945818,
+          "last_activity_date": 1726619881,
+          "tags": [
+            "unit-testing",
+            "testing",
+            "jestjs"
+          ]
+        },
+        {
+          "question_id": 71841181,
+          "title": "Some components &quot;cannot be used as a JSX component&quot;",
+          "link": "https://stackoverflow.com/questions/71841181/some-components-cannot-be-used-as-a-jsx-component",
+          "view_count": 113786,
+          "score": 70,
+          "answer_count": 7,
+          "creation_date": 1649759817,
+          "last_activity_date": 1699972671,
+          "tags": [
+            "reactjs",
+            "typescript"
+          ]
+        }
+      ]
+    },
+    "docker compose env": {
+      "has_more": true,
+      "items": [
+        {
+          "question_id": 44084846,
+          "title": "Cannot connect to the Docker daemon on macOS",
+          "link": "https://stackoverflow.com/questions/44084846/cannot-connect-to-the-docker-daemon-on-macos",
+          "view_count": 846572,
+          "score": 608,
+          "answer_count": 34,
+          "creation_date": 1495276575,
+          "last_activity_date": 1761676727,
+          "tags": [
+            "macos",
+            "docker",
+            "macos-sierra"
+          ]
+        },
+        {
+          "question_id": 46032392,
+          "title": "Docker Compose does not allow to use local images",
+          "link": "https://stackoverflow.com/questions/46032392/docker-compose-does-not-allow-to-use-local-images",
+          "view_count": 280803,
+          "score": 184,
+          "answer_count": 11,
+          "creation_date": 1504510747,
+          "last_activity_date": 1759794344,
+          "tags": [
+            "docker",
+            "docker-compose"
+          ]
+        },
+        {
+          "question_id": 71040681,
+          "title": "qemu-x86_64: Could not open &#39;/lib64/ld-linux-x86-64.so.2&#39;: No such file or directory",
+          "link": "https://stackoverflow.com/questions/71040681/qemu-x86-64-could-not-open-lib64-ld-linux-x86-64-so-2-no-such-file-or-direc",
+          "view_count": 187537,
+          "score": 157,
+          "answer_count": 8,
+          "creation_date": 1644353236,
+          "last_activity_date": 1741216468,
+          "tags": [
+            "docker",
+            "go",
+            "apple-m1",
+            "rancher"
+          ]
+        },
+        {
+          "question_id": 31909979,
+          "title": "Docker Machine: No space left on device",
+          "link": "https://stackoverflow.com/questions/31909979/docker-machine-no-space-left-on-device",
+          "view_count": 129173,
+          "score": 152,
+          "answer_count": 9,
+          "creation_date": 1439164700,
+          "last_activity_date": 1708714018,
+          "tags": [
+            "docker",
+            "docker-compose",
+            "docker-machine"
+          ]
+        },
+        {
+          "question_id": 33478555,
+          "title": "Kubernetes equivalent of env-file in Docker",
+          "link": "https://stackoverflow.com/questions/33478555/kubernetes-equivalent-of-env-file-in-docker",
+          "view_count": 101349,
+          "score": 139,
+          "answer_count": 9,
+          "creation_date": 1446470301,
+          "last_activity_date": 1646686396,
+          "tags": [
+            "configuration",
+            "docker",
+            "environment-variables",
+            "configuration-files",
+            "kubernetes"
+          ]
+        },
+        {
+          "question_id": 59838692,
+          "title": "MYSQL_ROOT_PASSWORD is set but getting &quot;Access denied for user &#39;root&#39;@&#39;localhost&#39; (using password: YES)&quot; in docker container",
+          "link": "https://stackoverflow.com/questions/59838692/mysql-root-password-is-set-but-getting-access-denied-for-user-rootlocalhost",
+          "view_count": 206802,
+          "score": 123,
+          "answer_count": 12,
+          "creation_date": 1579601273,
+          "last_activity_date": 1722244992,
+          "tags": [
+            "mysql",
+            "docker",
+            "docker-compose",
+            "dockerfile"
+          ]
+        },
+        {
+          "question_id": 48495663,
+          "title": "Docker-compose env file not working",
+          "link": "https://stackoverflow.com/questions/48495663/docker-compose-env-file-not-working",
+          "view_count": 174165,
+          "score": 114,
+          "answer_count": 13,
+          "creation_date": 1517207972,
+          "last_activity_date": 1709738642,
+          "tags": [
+            "environment-variables",
+            "docker-compose",
+            "external"
+          ]
+        },
+        {
+          "question_id": 59296801,
+          "title": "Docker-compose exit code is 137 when there is no OOM exception",
+          "link": "https://stackoverflow.com/questions/59296801/docker-compose-exit-code-is-137-when-there-is-no-oom-exception",
+          "view_count": 399780,
+          "score": 114,
+          "answer_count": 9,
+          "creation_date": 1576117299,
+          "last_activity_date": 1728899743,
+          "tags": [
+            "docker",
+            "docker-compose",
+            "cypress"
+          ]
+        },
+        {
+          "question_id": 52429984,
+          "title": "docker-compose build environment variable",
+          "link": "https://stackoverflow.com/questions/52429984/docker-compose-build-environment-variable",
+          "view_count": 114032,
+          "score": 109,
+          "answer_count": 2,
+          "creation_date": 1537462892,
+          "last_activity_date": 1647291182,
+          "tags": [
+            "docker",
+            "docker-compose"
+          ]
+        },
+        {
+          "question_id": 37100358,
+          "title": "Docker-Compose with multiple services",
+          "link": "https://stackoverflow.com/questions/37100358/docker-compose-with-multiple-services",
+          "view_count": 109063,
+          "score": 107,
+          "answer_count": 1,
+          "creation_date": 1462714060,
+          "last_activity_date": 1602170649,
+          "tags": [
+            "docker",
+            "docker-compose"
+          ]
+        },
+        {
+          "question_id": 47223280,
+          "title": "Docker Containers can not be stopped or removed - permission denied Error",
+          "link": "https://stackoverflow.com/questions/47223280/docker-containers-can-not-be-stopped-or-removed-permission-denied-error",
+          "view_count": 140176,
+          "score": 107,
+          "answer_count": 11,
+          "creation_date": 1510318506,
+          "last_activity_date": 1754272855,
+          "tags": [
+            "ruby-on-rails",
+            "docker",
+            "docker-compose",
+            "docker-swarm"
+          ]
+        },
+        {
+          "question_id": 62246824,
+          "title": "Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: No &quot;exports&quot; main resolved in /app/node_modules/@babel/helper-compilation-targets/package.json",
+          "link": "https://stackoverflow.com/questions/62246824/error-err-package-path-not-exported-no-exports-main-resolved-in-app-node-m",
+          "view_count": 224984,
+          "score": 96,
+          "answer_count": 13,
+          "creation_date": 1591540145,
+          "last_activity_date": 1744156990,
+          "tags": [
+            "node.js",
+            "docker",
+            "travis-ci",
+            "nuxt.js"
+          ]
+        },
+        {
+          "question_id": 72695311,
+          "title": "Failure starting Docker container. &quot;failed to create shim task: OCI runtime create failed: runc create failed&quot;",
+          "link": "https://stackoverflow.com/questions/72695311/failure-starting-docker-container-failed-to-create-shim-task-oci-runtime-crea",
+          "view_count": 453565,
+          "score": 92,
+          "answer_count": 9,
+          "creation_date": 1655785366,
+          "last_activity_date": 1721070852,
+          "tags": [
+            "docker",
+            "docker-compose"
+          ]
+        },
+        {
+          "question_id": 29261811,
+          "title": "Use docker-compose env variable in Dockerbuild file",
+          "link": "https://stackoverflow.com/questions/29261811/use-docker-compose-env-variable-in-dockerbuild-file",
+          "view_count": 74249,
+          "score": 89,
+          "answer_count": 3,
+          "creation_date": 1427302513,
+          "last_activity_date": 1556143961,
+          "tags": [
+            "docker",
+            "docker-compose"
+          ]
+        },
+        {
+          "question_id": 33045358,
+          "title": "docker-compose image named: &quot;prefix_%s_1&quot; instead of &quot;%s&quot;",
+          "link": "https://stackoverflow.com/questions/33045358/docker-compose-image-named-prefix-s-1-instead-of-s",
+          "view_count": 75362,
+          "score": 78,
+          "answer_count": 6,
+          "creation_date": 1444417099,
+          "last_activity_date": 1735958414,
+          "tags": [
+            "docker",
+            "docker-compose"
+          ]
+        },
+        {
+          "question_id": 36236491,
+          "title": "docker-compose gives ERROR: Cannot locate specified Dockerfile: Dockerfile",
+          "link": "https://stackoverflow.com/questions/36236491/docker-compose-gives-error-cannot-locate-specified-dockerfile-dockerfile",
+          "view_count": 133973,
+          "score": 76,
+          "answer_count": 14,
+          "creation_date": 1459002677,
+          "last_activity_date": 1678465337,
+          "tags": [
+            "docker",
+            "docker-compose"
+          ]
+        },
+        {
+          "question_id": 71189819,
+          "title": "ImportError: cannot import name &#39;json&#39; from itsdangerous",
+          "link": "https://stackoverflow.com/questions/71189819/importerror-cannot-import-name-json-from-itsdangerous",
+          "view_count": 87663,
+          "score": 72,
+          "answer_count": 11,
+          "creation_date": 1645310480,
+          "last_activity_date": 1691078711,
+          "tags": [
+            "python",
+            "docker",
+            "flask",
+            "docker-compose"
+          ]
+        },
+        {
+          "question_id": 73398714,
+          "title": "Docker Fails When Building on M1 Macs (exec /usr/local/bin/docker-entrypoint.sh: exec format error)",
+          "link": "https://stackoverflow.com/questions/73398714/docker-fails-when-building-on-m1-macs-exec-usr-local-bin-docker-entrypoint-sh",
+          "view_count": 96561,
+          "score": 72,
+          "answer_count": 3,
+          "creation_date": 1660806330,
+          "last_activity_date": 1759148332,
+          "tags": [
+            "docker",
+            "docker-compose"
+          ]
+        },
+        {
+          "question_id": 50121943,
+          "title": "Docker-compose hangs on Attaching to",
+          "link": "https://stackoverflow.com/questions/50121943/docker-compose-hangs-on-attaching-to",
+          "view_count": 77622,
+          "score": 70,
+          "answer_count": 8,
+          "creation_date": 1525199817,
+          "last_activity_date": 1733133356,
+          "tags": [
+            "docker",
+            "docker-compose"
+          ]
+        },
+        {
+          "question_id": 32022014,
+          "title": "Auto-reloading of code changes with Django development in Docker with Gunicorn",
+          "link": "https://stackoverflow.com/questions/32022014/auto-reloading-of-code-changes-with-django-development-in-docker-with-gunicorn",
+          "view_count": 58257,
+          "score": 69,
+          "answer_count": 6,
+          "creation_date": 1439618037,
+          "last_activity_date": 1643930466,
+          "tags": [
+            "django",
+            "docker",
+            "gunicorn",
+            "docker-compose"
+          ]
+        },
+        {
+          "question_id": 40075065,
+          "title": "Using Docker I get the error: &quot;SQLSTATE[HY000] [2002] No such file or directory&quot;",
+          "link": "https://stackoverflow.com/questions/40075065/using-docker-i-get-the-error-sqlstatehy000-2002-no-such-file-or-directory",
+          "view_count": 93093,
+          "score": 61,
+          "answer_count": 5,
+          "creation_date": 1476649427,
+          "last_activity_date": 1662420961,
+          "tags": [
+            "php",
+            "mysql",
+            "docker",
+            "docker-compose",
+            "dockerfile"
+          ]
+        },
+        {
+          "question_id": 35969414,
+          "title": "Couldn&#39;t connect to Docker daemon on Mac OS X",
+          "link": "https://stackoverflow.com/questions/35969414/couldnt-connect-to-docker-daemon-on-mac-os-x",
+          "view_count": 69549,
+          "score": 58,
+          "answer_count": 5,
+          "creation_date": 1457866966,
+          "last_activity_date": 1568970707,
+          "tags": [
+            "macos",
+            "docker",
+            "docker-compose",
+            "daemon"
+          ]
+        },
+        {
+          "question_id": 35022428,
+          "title": "Rails server is still running in a new opened docker container",
+          "link": "https://stackoverflow.com/questions/35022428/rails-server-is-still-running-in-a-new-opened-docker-container",
+          "view_count": 30416,
+          "score": 57,
+          "answer_count": 11,
+          "creation_date": 1453837147,
+          "last_activity_date": 1751511838,
+          "tags": [
+            "ruby-on-rails",
+            "docker",
+            "docker-compose"
+          ]
+        },
+        {
+          "question_id": 34729752,
+          "title": "Sidekiq Error connecting to Redis on 127.0.0.1:6379 (Errno::ECONNREFUSED) on docker-compose",
+          "link": "https://stackoverflow.com/questions/34729752/sidekiq-error-connecting-to-redis-on-127-0-0-16379-errnoeconnrefused-on-doc",
+          "view_count": 70850,
+          "score": 55,
+          "answer_count": 8,
+          "creation_date": 1452541457,
+          "last_activity_date": 1705000841,
+          "tags": [
+            "ruby-on-rails",
+            "docker",
+            "redis",
+            "sidekiq",
+            "docker-compose"
+          ]
+        },
+        {
+          "question_id": 59470406,
+          "title": "How to solve &quot;Could not find any Python installation to use&quot; with docker node alpine Image when adding bcrypt to package.json?",
+          "link": "https://stackoverflow.com/questions/59470406/how-to-solve-could-not-find-any-python-installation-to-use-with-docker-node-al",
+          "view_count": 176014,
+          "score": 55,
+          "answer_count": 10,
+          "creation_date": 1577198861,
+          "last_activity_date": 1721207311,
+          "tags": [
+            "python",
+            "node.js",
+            "docker",
+            "bcrypt",
+            "alpine-linux"
+          ]
+        }
+      ]
+    },
+    "environment variables secrets": {
+      "has_more": true,
+      "items": [
+        {
+          "question_id": 49928819,
+          "title": "How to pull environment variables with Helm charts",
+          "link": "https://stackoverflow.com/questions/49928819/how-to-pull-environment-variables-with-helm-charts",
+          "view_count": 285995,
+          "score": 149,
+          "answer_count": 8,
+          "creation_date": 1524166074,
+          "last_activity_date": 1683344972,
+          "tags": [
+            "kubernetes",
+            "kubectl",
+            "kubernetes-helm"
+          ]
+        },
+        {
+          "question_id": 60176044,
+          "title": "How do I use an env file with GitHub Actions?",
+          "link": "https://stackoverflow.com/questions/60176044/how-do-i-use-an-env-file-with-github-actions",
+          "view_count": 202740,
+          "score": 148,
+          "answer_count": 16,
+          "creation_date": 1581449208,
+          "last_activity_date": 1714539960,
+          "tags": [
+            "github",
+            "environment-variables",
+            "github-actions"
+          ]
+        },
+        {
+          "question_id": 30523238,
+          "title": "Best practices for server-side handling of JWT tokens",
+          "link": "https://stackoverflow.com/questions/30523238/best-practices-for-server-side-handling-of-jwt-tokens",
+          "view_count": 56552,
+          "score": 124,
+          "answer_count": 5,
+          "creation_date": 1432883178,
+          "last_activity_date": 1558624294,
+          "tags": [
+            "security",
+            "authentication",
+            "token",
+            "jwt",
+            "secret-key"
+          ]
+        },
+        {
+          "question_id": 9338428,
+          "title": "Using secret api keys on travis-ci",
+          "link": "https://stackoverflow.com/questions/9338428/using-secret-api-keys-on-travis-ci",
+          "view_count": 27284,
+          "score": 95,
+          "answer_count": 4,
+          "creation_date": 1329537962,
+          "last_activity_date": 1506339038,
+          "tags": [
+            "continuous-integration",
+            "api-key",
+            "travis-ci"
+          ]
+        },
+        {
+          "question_id": 46407009,
+          "title": "How to hide .env passwords in Laravel whoops output?",
+          "link": "https://stackoverflow.com/questions/46407009/how-to-hide-env-passwords-in-laravel-whoops-output",
+          "view_count": 36543,
+          "score": 78,
+          "answer_count": 12,
+          "creation_date": 1506347871,
+          "last_activity_date": 1634684562,
+          "tags": [
+            "php",
+            "laravel",
+            "environment-variables",
+            "secret-key",
+            "whoops"
+          ]
+        },
+        {
+          "question_id": 50911540,
+          "title": "Parsing secrets from AWS secrets manager using AWS cli",
+          "link": "https://stackoverflow.com/questions/50911540/parsing-secrets-from-aws-secrets-manager-using-aws-cli",
+          "view_count": 126045,
+          "score": 77,
+          "answer_count": 16,
+          "creation_date": 1529331502,
+          "last_activity_date": 1731645316,
+          "tags": [
+            "linux",
+            "amazon-web-services",
+            "aws-cli",
+            "aws-secrets-manager"
+          ]
+        },
+        {
+          "question_id": 40131672,
+          "title": "Storing production secrets in ASP.NET Core",
+          "link": "https://stackoverflow.com/questions/40131672/storing-production-secrets-in-asp-net-core",
+          "view_count": 63859,
+          "score": 68,
+          "answer_count": 3,
+          "creation_date": 1476880839,
+          "last_activity_date": 1640904001,
+          "tags": [
+            "asp.net-core"
+          ]
+        },
+        {
+          "question_id": 52540316,
+          "title": "How do I add a .env file in gitlab ci during deployment stage?",
+          "link": "https://stackoverflow.com/questions/52540316/how-do-i-add-a-env-file-in-gitlab-ci-during-deployment-stage",
+          "view_count": 101918,
+          "score": 65,
+          "answer_count": 6,
+          "creation_date": 1538061683,
+          "last_activity_date": 1740711103,
+          "tags": [
+            "google-app-engine",
+            "google-cloud-platform",
+            "gitlab",
+            "gitlab-ci"
+          ]
+        },
+        {
+          "question_id": 44774520,
+          "title": "Exporting environment variables from one stage to the next in GitLab CI",
+          "link": "https://stackoverflow.com/questions/44774520/exporting-environment-variables-from-one-stage-to-the-next-in-gitlab-ci",
+          "view_count": 92334,
+          "score": 56,
+          "answer_count": 4,
+          "creation_date": 1498548464,
+          "last_activity_date": 1689960032,
+          "tags": [
+            "environment-variables",
+            "gitlab",
+            "gitlab-ci"
+          ]
+        },
+        {
+          "question_id": 46863981,
+          "title": "How to sign git commits from within an IDE like IntelliJ?",
+          "link": "https://stackoverflow.com/questions/46863981/how-to-sign-git-commits-from-within-an-ide-like-intellij",
+          "view_count": 38650,
+          "score": 54,
+          "answer_count": 3,
+          "creation_date": 1508594055,
+          "last_activity_date": 1717008790,
+          "tags": [
+            "git",
+            "intellij-idea",
+            "gnupg"
+          ]
+        },
+        {
+          "question_id": 5396932,
+          "title": "Why are no Amazon S3 authentication handlers ready?",
+          "link": "https://stackoverflow.com/questions/5396932/why-are-no-amazon-s3-authentication-handlers-ready",
+          "view_count": 53947,
+          "score": 53,
+          "answer_count": 12,
+          "creation_date": 1300823255,
+          "last_activity_date": 1531051259,
+          "tags": [
+            "amazon-s3",
+            "amazon-web-services",
+            "boto"
+          ]
+        },
+        {
+          "question_id": 41287108,
+          "title": "Deploying Firebase App with Service Account to Heroku (environment variables with dotenv)",
+          "link": "https://stackoverflow.com/questions/41287108/deploying-firebase-app-with-service-account-to-heroku-environment-variables-wit",
+          "view_count": 19211,
+          "score": 52,
+          "answer_count": 7,
+          "creation_date": 1482422285,
+          "last_activity_date": 1660788528,
+          "tags": [
+            "node.js",
+            "heroku",
+            "firebase",
+            "environment-variables",
+            "firebase-authentication"
+          ]
+        },
+        {
+          "question_id": 55515594,
+          "title": "Is there a way to share a configMap in kubernetes between namespaces?",
+          "link": "https://stackoverflow.com/questions/55515594/is-there-a-way-to-share-a-configmap-in-kubernetes-between-namespaces",
+          "view_count": 54530,
+          "score": 52,
+          "answer_count": 4,
+          "creation_date": 1554379473,
+          "last_activity_date": 1698318956,
+          "tags": [
+            "kubernetes",
+            "namespaces",
+            "configmap"
+          ]
+        },
+        {
+          "question_id": 61117865,
+          "title": "How to set environment variable in node.js process when deploying with github action",
+          "link": "https://stackoverflow.com/questions/61117865/how-to-set-environment-variable-in-node-js-process-when-deploying-with-github-ac",
+          "view_count": 35724,
+          "score": 51,
+          "answer_count": 4,
+          "creation_date": 1586424165,
+          "last_activity_date": 1725006046,
+          "tags": [
+            "node.js",
+            "continuous-integration",
+            "github-actions"
+          ]
+        },
+        {
+          "question_id": 34442739,
+          "title": "How does one set private environment variables on Firebase hosting?",
+          "link": "https://stackoverflow.com/questions/34442739/how-does-one-set-private-environment-variables-on-firebase-hosting",
+          "view_count": 77439,
+          "score": 47,
+          "answer_count": 8,
+          "creation_date": 1450900210,
+          "last_activity_date": 1732604579,
+          "tags": [
+            "firebase",
+            "firebase-hosting"
+          ]
+        },
+        {
+          "question_id": 44931613,
+          "title": "How to correctly store connection strings in environment variables for retrieval by production ASP.Net Core MVC applications",
+          "link": "https://stackoverflow.com/questions/44931613/how-to-correctly-store-connection-strings-in-environment-variables-for-retrieval",
+          "view_count": 95192,
+          "score": 47,
+          "answer_count": 3,
+          "creation_date": 1499272310,
+          "last_activity_date": 1499281501,
+          "tags": [
+            "c#",
+            "asp.net-core",
+            "environment-variables",
+            "asp.net-core-mvc"
+          ]
+        },
+        {
+          "question_id": 24744205,
+          "title": "EC2 API Error validating access credential",
+          "link": "https://stackoverflow.com/questions/24744205/ec2-api-error-validating-access-credential",
+          "view_count": 43219,
+          "score": 43,
+          "answer_count": 7,
+          "creation_date": 1405365717,
+          "last_activity_date": 1590899328,
+          "tags": [
+            "amazon-ec2",
+            "ec2-api-tools"
+          ]
+        },
+        {
+          "question_id": 57821886,
+          "title": "AWS Secrets Manager can’t find the specified secret",
+          "link": "https://stackoverflow.com/questions/57821886/aws-secrets-manager-can-t-find-the-specified-secret",
+          "view_count": 105743,
+          "score": 42,
+          "answer_count": 7,
+          "creation_date": 1567772224,
+          "last_activity_date": 1745461902,
+          "tags": [
+            "amazon-web-services",
+            "amazon-ecs",
+            "aws-fargate",
+            "aws-secrets-manager"
+          ]
+        },
+        {
+          "question_id": 62142092,
+          "title": "Is it okay to use GitHub Secrets with a public repo?",
+          "link": "https://stackoverflow.com/questions/62142092/is-it-okay-to-use-github-secrets-with-a-public-repo",
+          "view_count": 15638,
+          "score": 41,
+          "answer_count": 2,
+          "creation_date": 1591051258,
+          "last_activity_date": 1596954838,
+          "tags": [
+            "git",
+            "amazon-web-services",
+            "github",
+            "github-actions"
+          ]
+        },
+        {
+          "question_id": 67503656,
+          "title": "Echo Github Action Environment variables",
+          "link": "https://stackoverflow.com/questions/67503656/echo-github-action-environment-variables",
+          "view_count": 133197,
+          "score": 41,
+          "answer_count": 3,
+          "creation_date": 1620822383,
+          "last_activity_date": 1742400630,
+          "tags": [
+            "github",
+            "github-actions"
+          ]
+        },
+        {
+          "question_id": 45171564,
+          "title": "Using Vault with docker-compose file",
+          "link": "https://stackoverflow.com/questions/45171564/using-vault-with-docker-compose-file",
+          "view_count": 64919,
+          "score": 39,
+          "answer_count": 4,
+          "creation_date": 1500392743,
+          "last_activity_date": 1729134039,
+          "tags": [
+            "docker",
+            "docker-compose",
+            "dockerfile",
+            "hashicorp-vault"
+          ]
+        },
+        {
+          "question_id": 6113042,
+          "title": "Where to store sensitive data in public rails app?",
+          "link": "https://stackoverflow.com/questions/6113042/where-to-store-sensitive-data-in-public-rails-app",
+          "view_count": 13559,
+          "score": 38,
+          "answer_count": 5,
+          "creation_date": 1306251630,
+          "last_activity_date": 1495292001,
+          "tags": [
+            "ruby-on-rails",
+            "environment-variables",
+            "credentials",
+            "api-key"
+          ]
+        },
+        {
+          "question_id": 48094850,
+          "title": "docker stack: setting environment variable from secrets",
+          "link": "https://stackoverflow.com/questions/48094850/docker-stack-setting-environment-variable-from-secrets",
+          "view_count": 55797,
+          "score": 38,
+          "answer_count": 6,
+          "creation_date": 1515067268,
+          "last_activity_date": 1679608828,
+          "tags": [
+            "docker-compose",
+            "docker-secrets"
+          ]
+        },
+        {
+          "question_id": 864570,
+          "title": "Very large uploads with PHP",
+          "link": "https://stackoverflow.com/questions/864570/very-large-uploads-with-php",
+          "view_count": 29675,
+          "score": 37,
+          "answer_count": 13,
+          "creation_date": 1242320999,
+          "last_activity_date": 1372274495,
+          "tags": [
+            "php",
+            "upload",
+            "large-files"
+          ]
+        },
+        {
+          "question_id": 19054008,
+          "title": "How to use environment variables with supervisor, gunicorn and django (1.6)",
+          "link": "https://stackoverflow.com/questions/19054008/how-to-use-environment-variables-with-supervisor-gunicorn-and-django-1-6",
+          "view_count": 35554,
+          "score": 37,
+          "answer_count": 4,
+          "creation_date": 1380294114,
+          "last_activity_date": 1436432189,
+          "tags": [
+            "django",
+            "shell",
+            "gunicorn",
+            "supervisord"
+          ]
+        }
+      ]
+    },
+    "symfony env": {
+      "has_more": true,
+      "items": [
+        {
+          "question_id": 58139175,
+          "title": "Running actions in another directory",
+          "link": "https://stackoverflow.com/questions/58139175/running-actions-in-another-directory",
+          "view_count": 408523,
+          "score": 400,
+          "answer_count": 4,
+          "creation_date": 1569605785,
+          "last_activity_date": 1758112708,
+          "tags": [
+            "github",
+            "github-actions"
+          ]
+        },
+        {
+          "question_id": 35811503,
+          "title": "Laravel 5: PHPUnit and no code coverage driver available",
+          "link": "https://stackoverflow.com/questions/35811503/laravel-5-phpunit-and-no-code-coverage-driver-available",
+          "view_count": 98071,
+          "score": 83,
+          "answer_count": 9,
+          "creation_date": 1457163789,
+          "last_activity_date": 1642575982,
+          "tags": [
+            "phpunit",
+            "code-coverage",
+            "laravel-5"
+          ]
+        },
+        {
+          "question_id": 71538752,
+          "title": "When are quotes needed in .env file?",
+          "link": "https://stackoverflow.com/questions/71538752/when-are-quotes-needed-in-env-file",
+          "view_count": 62532,
+          "score": 54,
+          "answer_count": 1,
+          "creation_date": 1647698372,
+          "last_activity_date": 1647699439,
+          "tags": [
+            "php",
+            "linux",
+            "symfony",
+            "environment-variables",
+            "dotenv"
+          ]
+        },
+        {
+          "question_id": 36979019,
+          "title": "getting error while updating Composer",
+          "link": "https://stackoverflow.com/questions/36979019/getting-error-while-updating-composer",
+          "view_count": 162945,
+          "score": 53,
+          "answer_count": 10,
+          "creation_date": 1462180806,
+          "last_activity_date": 1630433577,
+          "tags": [
+            "laravel",
+            "laravel-5.1",
+            "laravel-5"
+          ]
+        },
+        {
+          "question_id": 43116427,
+          "title": "server:run Exception There are no commands defined in the &quot;server&quot; namespace",
+          "link": "https://stackoverflow.com/questions/43116427/serverrun-exception-there-are-no-commands-defined-in-the-server-namespace",
+          "view_count": 69271,
+          "score": 47,
+          "answer_count": 13,
+          "creation_date": 1490872867,
+          "last_activity_date": 1607246122,
+          "tags": [
+            "php",
+            "symfony"
+          ]
+        },
+        {
+          "question_id": 52151783,
+          "title": "How to get .env parameter from a controller?",
+          "link": "https://stackoverflow.com/questions/52151783/how-to-get-env-parameter-from-a-controller",
+          "view_count": 93640,
+          "score": 41,
+          "answer_count": 7,
+          "creation_date": 1535985142,
+          "last_activity_date": 1746363414,
+          "tags": [
+            "php",
+            "symfony",
+            "symfony4"
+          ]
+        },
+        {
+          "question_id": 49090863,
+          "title": "How to use an environment variable (from `.env` file) in custom Twig function in Symfony?",
+          "link": "https://stackoverflow.com/questions/49090863/how-to-use-an-environment-variable-from-env-file-in-custom-twig-function-in",
+          "view_count": 59139,
+          "score": 39,
+          "answer_count": 6,
+          "creation_date": 1520124877,
+          "last_activity_date": 1773063142,
+          "tags": [
+            "symfony",
+            "twig",
+            "twig-extension"
+          ]
+        },
+        {
+          "question_id": 54675520,
+          "title": "Composer update: The requested PHP extension ext-http missing",
+          "link": "https://stackoverflow.com/questions/54675520/composer-update-the-requested-php-extension-ext-http-missing",
+          "view_count": 129446,
+          "score": 39,
+          "answer_count": 12,
+          "creation_date": 1550076828,
+          "last_activity_date": 1743861878,
+          "tags": [
+            "php",
+            "symfony",
+            "composer-php"
+          ]
+        },
+        {
+          "question_id": 48594851,
+          "title": "Upgrading Laravel 5.5 to 5.6 error",
+          "link": "https://stackoverflow.com/questions/48594851/upgrading-laravel-5-5-to-5-6-error",
+          "view_count": 36491,
+          "score": 37,
+          "answer_count": 12,
+          "creation_date": 1517641451,
+          "last_activity_date": 1564127756,
+          "tags": [
+            "php",
+            "laravel",
+            "composer-php",
+            "laravel-5.6"
+          ]
+        },
+        {
+          "question_id": 30832731,
+          "title": "How can I display Exception trace in laravel console command?",
+          "link": "https://stackoverflow.com/questions/30832731/how-can-i-display-exception-trace-in-laravel-console-command",
+          "view_count": 21711,
+          "score": 32,
+          "answer_count": 3,
+          "creation_date": 1434304928,
+          "last_activity_date": 1595516386,
+          "tags": [
+            "php",
+            "exception",
+            "laravel-5",
+            "console"
+          ]
+        },
+        {
+          "question_id": 15750913,
+          "title": "Generating a PHAR for a simple application",
+          "link": "https://stackoverflow.com/questions/15750913/generating-a-phar-for-a-simple-application",
+          "view_count": 16134,
+          "score": 27,
+          "answer_count": 1,
+          "creation_date": 1364846706,
+          "last_activity_date": 1475515780,
+          "tags": [
+            "php",
+            "packaging",
+            "composer-php",
+            "phar",
+            "symfony-components"
+          ]
+        },
+        {
+          "question_id": 30716716,
+          "title": "Composer update/create-project/install - HTTP Request failed",
+          "link": "https://stackoverflow.com/questions/30716716/composer-update-create-project-install-http-request-failed",
+          "view_count": 22688,
+          "score": 27,
+          "answer_count": 4,
+          "creation_date": 1433788969,
+          "last_activity_date": 1527318582,
+          "tags": [
+            "php",
+            "composer-php"
+          ]
+        },
+        {
+          "question_id": 14069586,
+          "title": "Laravel 4 migrations - class not found",
+          "link": "https://stackoverflow.com/questions/14069586/laravel-4-migrations-class-not-found",
+          "view_count": 17820,
+          "score": 26,
+          "answer_count": 4,
+          "creation_date": 1356697696,
+          "last_activity_date": 1426769884,
+          "tags": [
+            "migration",
+            "laravel"
+          ]
+        },
+        {
+          "question_id": 60719259,
+          "title": "Unable to locate publishable resources",
+          "link": "https://stackoverflow.com/questions/60719259/unable-to-locate-publishable-resources",
+          "view_count": 73349,
+          "score": 26,
+          "answer_count": 14,
+          "creation_date": 1584436239,
+          "last_activity_date": 1683111967,
+          "tags": [
+            "laravel",
+            "laravel-websockets"
+          ]
+        },
+        {
+          "question_id": 11862468,
+          "title": "Symfony2 dev environment works, prod environment gives 404 error",
+          "link": "https://stackoverflow.com/questions/11862468/symfony2-dev-environment-works-prod-environment-gives-404-error",
+          "view_count": 46283,
+          "score": 24,
+          "answer_count": 10,
+          "creation_date": 1344421348,
+          "last_activity_date": 1688421715,
+          "tags": [
+            "php",
+            "symfony"
+          ]
+        },
+        {
+          "question_id": 30606262,
+          "title": "Travis CI : How to allow failures with a customized environment variable?",
+          "link": "https://stackoverflow.com/questions/30606262/travis-ci-how-to-allow-failures-with-a-customized-environment-variable",
+          "view_count": 6502,
+          "score": 24,
+          "answer_count": 2,
+          "creation_date": 1433277966,
+          "last_activity_date": 1479102233,
+          "tags": [
+            "travis-ci"
+          ]
+        },
+        {
+          "question_id": 23963983,
+          "title": "PHP Phar creation slow on a powerful PC, how to speed up (loading/reading ~3000 files)?",
+          "link": "https://stackoverflow.com/questions/23963983/php-phar-creation-slow-on-a-powerful-pc-how-to-speed-up-loading-reading-3000",
+          "view_count": 2074,
+          "score": 23,
+          "answer_count": 9,
+          "creation_date": 1401487252,
+          "last_activity_date": 1482912823,
+          "tags": [
+            "php",
+            "performance",
+            "symfony",
+            "phar"
+          ]
+        },
+        {
+          "question_id": 32195346,
+          "title": "Show a 404 page if route not found in Laravel 5.1",
+          "link": "https://stackoverflow.com/questions/32195346/show-a-404-page-if-route-not-found-in-laravel-5-1",
+          "view_count": 67770,
+          "score": 23,
+          "answer_count": 8,
+          "creation_date": 1440475596,
+          "last_activity_date": 1667803607,
+          "tags": [
+            "php",
+            "laravel",
+            "laravel-5.1"
+          ]
+        },
+        {
+          "question_id": 48380892,
+          "title": "FatalErrorException in Inflector.php line 265: syntax error, unexpected &#39;:&#39;, expecting &#39;;&#39; or &#39;{&#39;",
+          "link": "https://stackoverflow.com/questions/48380892/fatalerrorexception-in-inflector-php-line-265-syntax-error-unexpected-exp",
+          "view_count": 33116,
+          "score": 23,
+          "answer_count": 7,
+          "creation_date": 1516621641,
+          "last_activity_date": 1627104457,
+          "tags": [
+            "php",
+            "laravel"
+          ]
+        },
+        {
+          "question_id": 58593887,
+          "title": "My profiler toolbar isn&#39;t showing up in symfony 4.3.1",
+          "link": "https://stackoverflow.com/questions/58593887/my-profiler-toolbar-isnt-showing-up-in-symfony-4-3-1",
+          "view_count": 26241,
+          "score": 23,
+          "answer_count": 8,
+          "creation_date": 1572276958,
+          "last_activity_date": 1754902331,
+          "tags": [
+            "php",
+            "symfony",
+            "symfony4",
+            "symfony-profiler"
+          ]
+        },
+        {
+          "question_id": 16563769,
+          "title": "Get Symfony2 environment in bundle Extension",
+          "link": "https://stackoverflow.com/questions/16563769/get-symfony2-environment-in-bundle-extension",
+          "view_count": 25102,
+          "score": 21,
+          "answer_count": 2,
+          "creation_date": 1368617120,
+          "last_activity_date": 1416372639,
+          "tags": [
+            "php",
+            "symfony"
+          ]
+        },
+        {
+          "question_id": 23229705,
+          "title": "catching ProcessTimedOutException in Laravel&#39;s artisan queue:listen",
+          "link": "https://stackoverflow.com/questions/23229705/catching-processtimedoutexception-in-laravels-artisan-queuelisten",
+          "view_count": 7449,
+          "score": 21,
+          "answer_count": 7,
+          "creation_date": 1398199080,
+          "last_activity_date": 1536295713,
+          "tags": [
+            "php",
+            "laravel",
+            "laravel-4",
+            "amazon-sqs"
+          ]
+        },
+        {
+          "question_id": 10014327,
+          "title": "Symfony 2 - multiple server configuration",
+          "link": "https://stackoverflow.com/questions/10014327/symfony-2-multiple-server-configuration",
+          "view_count": 8145,
+          "score": 20,
+          "answer_count": 1,
+          "creation_date": 1333553355,
+          "last_activity_date": 1335932233,
+          "tags": [
+            "php",
+            "configuration",
+            "symfony"
+          ]
+        },
+        {
+          "question_id": 32801183,
+          "title": "Deployment on Laravel Forge throwing faker not found Exception",
+          "link": "https://stackoverflow.com/questions/32801183/deployment-on-laravel-forge-throwing-faker-not-found-exception",
+          "view_count": 20764,
+          "score": 20,
+          "answer_count": 3,
+          "creation_date": 1443296172,
+          "last_activity_date": 1670521624,
+          "tags": [
+            "php",
+            "laravel",
+            "laravel-5.1",
+            "laravel-forge"
+          ]
+        },
+        {
+          "question_id": 58595101,
+          "title": "How write a Symfony Flex recipe for a new bundle?",
+          "link": "https://stackoverflow.com/questions/58595101/how-write-a-symfony-flex-recipe-for-a-new-bundle",
+          "view_count": 7287,
+          "score": 19,
+          "answer_count": 1,
+          "creation_date": 1572281385,
+          "last_activity_date": 1649233041,
+          "tags": [
+            "php",
+            "symfony",
+            "symfony4",
+            "symfony-flex"
+          ]
+        }
+      ]
+    }
+  }
+}

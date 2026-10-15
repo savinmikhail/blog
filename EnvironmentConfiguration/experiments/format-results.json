@@ -1,0 +1,12 @@
+{
+  "json_duplicate_key": {
+    "mode": "other"
+  },
+  "toml_duplicate_key_rejected": true,
+  "bash_source": "synthetic-command-ran",
+  "node_env_file": "$(printf synthetic-command-ran)",
+  "versions": {
+    "node": "v24.20.0",
+    "bash": "GNU bash, version 5.2.37(1)-release (aarch64-apple-darwin23.6.0)"
+  }
+}

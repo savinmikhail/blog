@@ -1,0 +1,46 @@
+{
+  "node": {
+    "exit": 0,
+    "stdout": "{\"BASE\":\"alpha\",\"EXPANDED\":\"${BASE}/data\",\"LITERAL\":\"cost$$cash\"}",
+    "stderr": ""
+  },
+  "bash": {
+    "exit": 0,
+    "stdout": "{\"BASE\": \"alpha\", \"EXPANDED\": \"alpha/data\", \"LITERAL\": \"cost25141cash\"}",
+    "stderr": ""
+  },
+  "make": {
+    "exit": 0,
+    "stdout": "{\"BASE\": \"alpha\", \"EXPANDED\": \"alpha/data\", \"LITERAL\": \"cost$cash\"}",
+    "stderr": ""
+  },
+  "compose": {
+    "exit": 0,
+    "stdout": {
+      "BASE": "alpha",
+      "EXPANDED": "alpha/data",
+      "LITERAL": "cost$$cash"
+    },
+    "stderr": ""
+  },
+  "precedence_shell_False": {
+    "exit": 0,
+    "environment": {
+      "ONLY_RUNTIME": "present",
+      "VALUE": "local"
+    }
+  },
+  "precedence_shell_True": {
+    "exit": 0,
+    "environment": {
+      "ONLY_RUNTIME": "present",
+      "VALUE": "shell"
+    }
+  },
+  "versions": {
+    "node": "v26.10.0",
+    "bash": "GNU bash, version 5.2.37(1)-release (aarch64-apple-darwin23.6.0)\nCopyright (C) 2022 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.",
+    "make": "GNU Make 3.81\nCopyright (C) 2006  Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.\nThere is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A\nPARTICULAR PURPOSE.\n\nThis program built for i386-apple-darwin11.3.0",
+    "compose": "Docker Compose version v2.38.2-desktop.1"
+  }
+}

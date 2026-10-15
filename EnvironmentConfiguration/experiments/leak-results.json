@@ -1,0 +1,12 @@
+{
+  "config_exit": 0,
+  "environment_value_in_config": "DEMO_NOT_A_REAL_SECRET_12345",
+  "secret_file_content_in_config": false,
+  "secret_definition": {
+    "demo": {
+      "name": "env-article-lab_demo",
+      "file": "/private/tmp/env-article-lab/dummy-secret.txt"
+    }
+  },
+  "chmod_600_same_user_can_read": true
+}

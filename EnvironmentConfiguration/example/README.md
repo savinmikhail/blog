@@ -1,10 +1,10 @@
 # Пример загрузки конфигурации PHP и Compose
 
-Минимальный PHP CLI + Symfony Dotenv, без полного фреймворка и подключения к БД. Все значения демонстрационные. Fake token намеренно хранится в репозитории; настоящие credentials сюда не добавлять.
+Небольшой PHP CLI + Symfony Dotenv без подключения к БД. Итоговая конфигурация из статьи: defaults приложения, внешнее переопределение host, пароль из отдельного файла, сборка DSN в PHP, строгий стартовый feature flag. Все значения искусственные. `secrets/db-password.txt` намеренно содержит публичную fixture, а не рабочий пароль.
 
-## Требования и запуск
+## Запуск
 
-PHP >=8.2, Composer, Python 3; для контейнерного опыта Docker Compose. Зависимость закреплена в composer.lock. Docker image закреплён digest; registry может потребоваться для первого скачивания.
+Нужны PHP >=8.2, Composer, Python 3; для контейнерного опыта Docker Compose. Composer lock и digest Docker image закреплены. Первое скачивание зависимостей требует сети.
 
 ```sh
 composer install --no-plugins --no-scripts
@@ -13,24 +13,27 @@ php dotenv-probe.php
 docker compose -p env-guide-article run --rm --no-deps app
 ```
 
-Локальный запуск без проверочного скрипта:
+Запуск вручную:
 
 ```sh
-APP_TOKEN_FILE="$PWD/secrets/demo-token.txt" php app/config.php
-DB_HOST=from-process APP_TOKEN_FILE="$PWD/secrets/demo-token.txt" php app/config.php
+DB_PASSWORD_FILE="$PWD/secrets/db-password.txt" php app/config.php
+DB_HOST=from-process DB_PASSWORD_FILE="$PWD/secrets/db-password.txt" php app/config.php
 ```
 
-В Compose корневой .env участвует в интерполяции, DB_HOST передаётся явно. PHP сам читает app/.env. Secret выдаётся через /run/secrets/demo_token. Контейнер без сети, портов, persistent volumes и Docker socket; app/vendor монтируются read-only. Контейнер удаляется после команды.
+Корневой `.env` содержит `DEMO_DB_HOST` для интерполяции Compose. Compose явно передаёт `DB_HOST` и путь `/run/secrets/db_password`; PHP сам читает `app/.env`. В начале статьи есть условный HTTP-порт для объяснения стадий Compose, а эта CLI-лаборатория порт не открывает. Контейнер без сети, persistent volumes и Docker socket; app/vendor смонтированы read-only.
 
-## Что проверено
+`app/config-values.php` возвращает значения для приложения. `app/config.php` печатает только отчёт: искусственный публичный host и метаданные. Пароль и DSN остаются в памяти, не экспортируются в process env. Отчёт не доказывает безопасность произвольного вызывающего кода.
 
-- PHP 8.5.9 локально, PHP 8.4.26 в официальном контейнере; Symfony Dotenv 7.4.18, Compose 2.38.2-desktop.1.
-- Local check.py: defaults, process override, invalid port, invalid boolean, missing secret, fake secret отсутствует в stdout/stderr.
-- Dotenv probe: local override меняет host, и зависимый URL пересчитывается с local host. Запускать в чистом окружении без APP_ENV и ENV_GUIDE_*.
-- Runtime: host from-compose, file token прочитан, содержимого токена нет в выводе. Результат в runtime-results.json.
+## Проверки
 
-## Границы примера
+- PHP 8.5.9 локально; PHP 8.4.26 в официальном контейнере; Symfony Dotenv 7.4.18, Compose 2.38.2-desktop.1.
+- `check.py`: defaults, внешнее переопределение, невалидные порт/boolean/host/имя БД, пустой user, пустой путь, отсутствующий и пустой файл секрета; безопасная ошибка парсинга; отсутствие пароля/DSN в отчёте; точный DSN со спецсимволами, обе boolean-ветки, отсутствие экспорта в env. Результаты: [local-results.json](local-results.json).
+- `dotenv-probe.php`: local override меняет host и зависимый URL. Запускать без внешних `APP_ENV` и `ENV_GUIDE_*`; результат версии 7.4.18 — [dotenv-results.json](dotenv-results.json).
+- Контейнер: host приходит из Compose, файл пароля прочитан, пароль и DSN отсутствуют в отчёте. [runtime-results.json](runtime-results.json).
+- [Исторические результаты](history/first-draft/README.md) сохранены отдельно: они относятся к прежнему примеру с token и APP_DEBUG.
 
-origin различает только process-at-bootstrap и dotenv, не определяет точный исходный файл/CI-переменную. DB_HOST выводится как явно публичное искусственное значение; для production это требует отдельной политики. valid означает только выполненные проверки (для host — непустота), не полноценную схему всех настроек. APP_TOKEN_FILE — файловый путь, его содержимое не выводится; соглашение реализовано нашим кодом.
+## Границы
 
-Нет проверки Laravel cache, полного Symfony container, Kubernetes rotation или sandbox агентов. Это не production-шаблон, а небольшой лабораторный пример для статьи.
+`origin` различает process-at-bootstrap и dotenv, без точного имени исходного файла. `valid` означает только проверки этого кода. Host допускает упрощённое DNS/IPv4-подобное имя, без проверки существования или полноценной сетевой грамматики; имя БД — буквы/цифры/underscore. IPv6, Unix sockets и другие DSN требуют правил своего драйвера. Текстовый пароль допускает завершающий перевод строки; для бинарных ключей это правило не подходит.
+
+`DB_PASSWORD_FILE` поддерживает наш код, это не автоматическая возможность любого образа. Feature flag читается при старте; динамического provider здесь нет. Сгенерированный DSN не проверялся подключением к PostgreSQL. Полный Symfony framework/cache, Laravel config cache, Kubernetes rotation и sandbox агентов здесь не испытаны.

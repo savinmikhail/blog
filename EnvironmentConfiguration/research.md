@@ -1,13 +1,14 @@
 # Исследование и актуальная карта гайда по env
 
-Актуализировано 16 октября 2026 после подготовки полного черновика и его ревью. Это карта материалов и доказательств; текущий текст — [article.md](article.md), единственная принятая структура — [outline.md](outline.md), 13 разделов. Ранний план из восьми разделов заменён, дублирующий план здесь не поддерживается.
+Актуализировано 16 октября 2026 после редакционной переработки в сквозной гайд. Это карта материалов и доказательств; текущий текст — [article.md](article.md), единственная принятая структура — [outline.md](outline.md), 13 разделов. Ранний план из восьми разделов заменён, дублирующий план здесь не поддерживается.
 
 ## Состояние материалов
 
 | Материал | Роль и актуальный статус |
 |---|---|
 | [article.md](article.md) | Полный черновик, ещё не опубликован на Хабре |
-| [outline.md](outline.md) | Принятая структура из 13 разделов; feature flags внутри жизненного цикла конфигурации |
+| [outline.md](outline.md) | Принятая структура из 13 разделов; эволюция одного приложения, feature flags в §10 |
+| [editorial-review.md](editorial-review.md), [technical-review.md](technical-review.md) | Независимые ревью сквозного гайда с повторной проверкой исправлений |
 | [review.md](review.md) | Исторический снимок первого ревью и его повторной проверки; не автоматическая гарантия для последующих правок |
 | [original-note.md](original-note.md) | Побайтно сохранённый исходник; содержит прежние советы, которые статья уточняет; не текущая инструкция |
 | [example/README.md](example/README.md) | Проверенный PHP + Symfony Dotenv + Compose пример |
@@ -30,9 +31,11 @@
 | Config выводит искусственный env-secret | [experiments/leak-results.json](experiments/leak-results.json) | Plaintext присутствует в resolved environment; file-secret definition содержит путь; inspect не проверялся |
 | chmod 600, чтение владельцем | [experiments/leak-results.json](experiments/leak-results.json) | Владелец читает; другой UID и Linux permissions этим не проверены |
 | JSON duplicates / TOML / source | [experiments/format-results.json](experiments/format-results.json) | Последний JSON key в Python; TOML duplicate error; Bash исполняет printf, Node сохраняет строку |
-| PHP defaults, process override, validation | [example/local-results.json](example/local-results.json) | Порт/boolean/missing file, fake secret отсутствует в stdout/stderr этого примера |
+| PHP defaults, process override, validation | [example/local-results.json](example/local-results.json) | 15 сценариев: типы/диапазоны, host/name/user, file password, точный DSN со спецсимволами, обе boolean-ветки, отсутствие пароля/DSN в отчёте и экспорта credentials в env |
 | Symfony Dotenv loadEnv интерполяция слоёв | [example/dotenv-results.json](example/dotenv-results.json) | В 7.4.18 host и зависимый URL получили local значение; нельзя переносить stale-DSN результат другой реализации |
-| PHP внутри Compose, file secret | [example/runtime-results.json](example/runtime-results.json) | DB_HOST пришёл из Compose, token-file прочитан, token отсутствует в выводе; не полный Symfony framework и не prod audit |
+| PHP внутри Compose, file secret | [example/runtime-results.json](example/runtime-results.json) | DB_HOST пришёл из Compose, password-file прочитан, пароль и DSN отсутствуют в отчёте; не полный Symfony framework и не prod audit |
+
+Предыдущие local/runtime snapshots примера сохранены без изменения в [example/history/first-draft/](example/history/first-draft/README.md): они описывают token/APP_DEBUG до редакционной переработки, а не текущий код. Raw JSON опытов и dependency lock также сохранены.
 
 Версии не усредняются: ранний parser probe использовал Node 26.10.0, format probe — 24.20.0; PHP локально 8.5.9, в контейнере 8.4.26; Symfony Dotenv 7.4.18. Зафиксированные версии и digest находятся рядом с результатами.
 
@@ -50,6 +53,7 @@
 
 ## Редакционные решения, принятые в тексте
 
+- Через текст проходит один пример: flat .env → разделение и загрузка → кеш → интерполяция → отдельная выдача секрета → динамический источник флагов.
 - Формат — широкий практический гайд; вопросы «не загрузилось / старое значение / утекло» помогают навигации, но не сужают согласованный охват.
 - Env process, файл, загрузчик, типизированная конфигурация, кеш и dynamic flags различаются явно.
 - Приоритеты Compose разделены на интерполяцию модели и окружение сервиса; далее приложение имеет собственную загрузку.

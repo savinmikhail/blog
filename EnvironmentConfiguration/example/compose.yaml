@@ -6,12 +6,12 @@ services:
     command: ["php", "app/config.php"]
     environment:
       DB_HOST: ${DEMO_DB_HOST:?Set DEMO_DB_HOST}
-      APP_TOKEN_FILE: /run/secrets/demo_token
+      DB_PASSWORD_FILE: /run/secrets/db_password
     volumes:
       - ./app:/work/app:ro
       - ./vendor:/work/vendor:ro
     secrets:
-      - demo_token
+      - db_password
 secrets:
-  demo_token:
-    file: ./secrets/demo-token.txt
+  db_password:
+    file: ./secrets/db-password.txt

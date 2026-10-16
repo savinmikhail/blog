@@ -17,17 +17,32 @@
       "present": true,
       "valid": true
     },
-    "APP_DEBUG": {
+    "DB_NAME": {
       "origin": "dotenv",
       "present": true,
       "valid": true
     },
-    "APP_TOKEN_FILE": {
+    "DB_USER": {
+      "origin": "dotenv",
+      "present": true,
+      "valid": true
+    },
+    "FEATURE_NEW_CHECKOUT": {
+      "origin": "dotenv",
+      "present": true,
+      "valid": true
+    },
+    "DB_PASSWORD_FILE": {
       "origin": "process-at-bootstrap",
       "present": true,
       "valid": true,
       "content_present": true
+    },
+    "DATABASE_URL": {
+      "present": true,
+      "origin": "application",
+      "exported": false
     }
   },
-  "fake_token_absent_from_output": true
+  "fake_password_and_dsn_absent_from_output": true
 }

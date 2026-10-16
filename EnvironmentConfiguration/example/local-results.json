@@ -3,7 +3,16 @@
   "process_override": "pass",
   "invalid_port": "pass",
   "invalid_boolean": "pass",
+  "empty_host": "pass",
+  "invalid_host": "pass",
+  "invalid_database_name": "pass",
+  "empty_user": "pass",
   "missing_secret": "pass",
-  "fake_secret_absent_from_output": "pass",
+  "nonexistent_secret": "pass",
+  "fake_secret_and_dsn_absent_from_output": "pass",
+  "dsn_encoding_and_false_flag": "pass",
+  "true_flag": "pass",
+  "empty_secret": "pass",
+  "parser_error_does_not_reveal_value": "pass",
   "php_version": "PHP 8.5.9 (cli) (built: Jul 28 2026 13:06:52) (NTS)"
 }

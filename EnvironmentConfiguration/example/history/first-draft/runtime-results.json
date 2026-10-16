@@ -1,0 +1,33 @@
+{
+  "observed_at": "2026-10-16",
+  "compose_version": "Docker Compose version v2.38.2-desktop.1",
+  "php": "PHP 8.4.26 (cli) (built: Sep 24 2026 19:14:57) (NTS)",
+  "image_repo_digests": [
+    "php@sha256:37c8c64177612b72e7f9d2c00481739c166a3708bea27c1cfd27fea1291d82d1"
+  ],
+  "report": {
+    "DB_HOST": {
+      "origin": "process-at-bootstrap",
+      "present": true,
+      "valid": true,
+      "public_demo_value": "from-compose"
+    },
+    "DB_PORT": {
+      "origin": "dotenv",
+      "present": true,
+      "valid": true
+    },
+    "APP_DEBUG": {
+      "origin": "dotenv",
+      "present": true,
+      "valid": true
+    },
+    "APP_TOKEN_FILE": {
+      "origin": "process-at-bootstrap",
+      "present": true,
+      "valid": true,
+      "content_present": true
+    }
+  },
+  "fake_token_absent_from_output": true
+}

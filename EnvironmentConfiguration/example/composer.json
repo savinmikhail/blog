@@ -1,0 +1,1 @@
+{"require":{"php":">=8.2","symfony/dotenv":"^7.4"},"config":{"allow-plugins":false}}

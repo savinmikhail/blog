@@ -1,0 +1,9 @@
+{
+  "defaults": "pass",
+  "process_override": "pass",
+  "invalid_port": "pass",
+  "invalid_boolean": "pass",
+  "missing_secret": "pass",
+  "fake_secret_absent_from_output": "pass",
+  "php_version": "PHP 8.5.9 (cli) (built: Jul 28 2026 13:06:52) (NTS)"
+}

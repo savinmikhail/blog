@@ -1,0 +1,7 @@
+/vendor/
+/.env.local
+/app/.env.local
+/app/.env.*.local
+/app/.env.local.php
+/secrets/*
+!/secrets/demo-token.txt

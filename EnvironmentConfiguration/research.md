@@ -8,8 +8,6 @@
 |---|---|
 | [article.md](article.md) | Полный черновик, ещё не опубликован на Хабре |
 | [outline.md](outline.md) | Принятая структура из 13 разделов; эволюция одного приложения, feature flags в §10 |
-| [editorial-review.md](editorial-review.md), [technical-review.md](technical-review.md) | Независимые ревью сквозного гайда с повторной проверкой исправлений |
-| [review.md](review.md) | Исторический снимок первого ревью и его повторной проверки; не автоматическая гарантия для последующих правок |
 | [original-note.md](original-note.md) | Побайтно сохранённый исходник; содержит прежние советы, которые статья уточняет; не текущая инструкция |
 | [example/README.md](example/README.md) | Проверенный PHP + Symfony Dotenv + Compose пример |
 | [experiments/README.md](experiments/README.md) | Ранние parser/config-only опыты; их границы не расширяются от появления runtime-примера |

@@ -16,7 +16,7 @@
 | [config-alternatives.md](config-alternatives.md) | Форматы/контракты/вычисление/доставка как отдельные решения |
 | [config-vulnerabilities.md](config-vulnerabilities.md) | Конкретные CVE и условия атак, без эксплуатации CVE |
 | [audience-demand.md](audience-demand.md), [audience-ecosystems.md](audience-ecosystems.md) | Датированная выборка вопросов; не monthly search volume |
-| [project-cases.md](project-cases.md) | Обезличенные уроки из кода Interviews/auth-service; один synthetic generator test, не production audit |
+| [project-cases.md](project-cases.md) | Обезличенные уроки из кода Interviews/auth-service и рабочего frontend; один synthetic generator test, не production audit |
 | [feature-flags-research.md](feature-flags-research.md) | Первичные источники dynamic flag lifecycle; SDK не запускался |
 | [audit.md](audit.md) | Пофайловый аудит актуальности и границ доказательств |
 
